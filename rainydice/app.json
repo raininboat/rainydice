@@ -1,0 +1,12 @@
+{
+    "name" : "RainyDice",
+    "namespace" : "RainyDice",
+    "priority" : 20000,
+    "support" : [
+        {
+            "sdk" : "onebot",
+            "platform" : "qq",
+            "model" : "all"
+        }
+    ]    
+}
