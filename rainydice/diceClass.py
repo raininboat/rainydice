@@ -159,8 +159,33 @@ class Group(dict):
                 # self[group_temp_val[0]][group_temp_val[1]] = json.loads(s_json)
         SQL_conn.cursor.close()
         self.sql_path = sql_path
-
     def set(self, key, value,platform,group_id):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key']
+        self[platform][group_id][key] = value
+        tempdict = {}
+        for tempkey in self.jsonconf:
+            tempdict[tempkey] = self[platform][group_id][tempkey]
+        Group_JSON = json.dumps(tempdict)
+        sql_path = self.sql_path
+        SQL_conn = SQL(sql_path)
+        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_isBotOn','Group_Trust')
+        VALUES(?,?,?,?,?,?,?,?);'''
+        Group_Platform = self[platform][group_id]['Group_Platform']
+        Group_Name = self[platform][group_id]['Group_Name']
+        Group_ID = self[platform][group_id]['Group_ID']
+        Group_Owner = self[platform][group_id]['Group_Owner']
+        Group_isBotOn = self[platform][group_id]['Group_isBotOn']
+        Group_Status = self[platform][group_id]['Group_Status']
+        Group_Trust = self[platform][group_id]['Group_Trust']
+        try:
+            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_JSON,Group_Name,Group_Owner,Group_Status,Group_isBotOn,Group_Trust))
+            SQL_conn.connection.commit()
+            if SQL_conn.connection.total_changes == 0:
+                self.log(3,'未能更改数据库数据!')
+            # SQL_conn.write_sql(pre_sql,(value,key))
+        except:
+            self.log(4,'数据库错误，即将回滚!')
+            SQL_conn.connection.rollback()
+    def __set(self, key, value,platform,group_id):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key']
         self[platform][group_id][key] = value
         if key not in self.jsonconf:
             sql_path = self.sql_path
@@ -276,9 +301,12 @@ class User(dict):
         SQL_conn.cursor.close()
         self.sql_path = sql_path
     # 添加新用户
-    def add_user(self,U_Platform,U_ID,U_Name='用户',U_EnabledCard=1,U_Trust=0,U_CriticalSuccess=0,U_ExtremeSuccess=0,U_HardSuccess=0,U_RegularSuccess=0,U_Failure=0,U_Fumble=0):
+    def add_user(self,U_Platform,U_ID,U_Name='用户',sender = {},U_EnabledCard=1,U_Trust=0,U_CriticalSuccess=0,U_ExtremeSuccess=0,U_HardSuccess=0,U_RegularSuccess=0,U_Failure=0,U_Fumble=0):
         if U_ID not in self[U_Platform]['user_list']:
             self[U_Platform]['user_list'].append(U_ID)
+        if sender != {}:
+            if U_Name != '用户':
+                U_Name = sender['nickname']
         self[U_Platform][U_ID] = {
             'U_Platform' : U_Platform,
             'U_ID' : U_ID ,
@@ -300,13 +328,13 @@ class User(dict):
         SQL_conn = SQL(sql_path)
         
         try:
-            #print('### trying to create tab')
+            print('### trying to create tab')
             pre_sql =f''' CREATE TABLE IF NOT EXISTS user_%d_%d('Card_ID'  INTEGER PRIMARY KEY NOT NULL , 'Card_Name' text, 'Card_JSON' text);'''%(U_Platform,U_ID)
             SQL_conn.cursor.execute(pre_sql)
-            #print('### trying to insert usercard')
-            pre_sql =''' INSERT INTO user_%d_%d('Card_ID','Card_Name','Card_JSON') VALUES (1,'用户标准人物卡','{}');'''%(U_Platform,U_ID)
+            print('### trying to insert usercard')
+            pre_sql =''' INSERT INTO user_%d_%d(Card_ID,Card_Name,Card_JSON) VALUES (1,'用户标准人物卡','{"_null" : -1}');'''%(U_Platform,U_ID)
             SQL_conn.cursor.execute(pre_sql)
-            #print('### trying to insert user')
+            print('### trying to insert user')
             pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
         VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
             SQL_conn.cursor.execute(pre_sql,(U_Platform,U_ID,U_Name,U_EnabledCard,U_Trust,U_CriticalSuccess,U_ExtremeSuccess,U_HardSuccess,U_RegularSuccess,U_Failure,U_Fumble))
@@ -318,18 +346,28 @@ class User(dict):
         except:
             self.log(4,'数据库错误，即将回滚!')
             SQL_conn.connection.rollback()
-
     def set(self, key, value,platform,user_id):      # 设置用户基本属性，人物卡不在这里
-        if user_id not in self[platform]['uset_list']:
+        if user_id not in self[platform]['user_list']:
             self.add_user(U_Platform=platform,U_ID=user_id)
         self[platform][user_id][key] = value
         #if key not in self.jsonconf:
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
-        pre_sql = '''UPDATE USER_CONF SET ? = ? WHERE 'U_Platform' IS ? AND 'U_ID' IS ?;'''
+        pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
+        VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
+        U_Platform = self[platform][user_id]['U_Platform']
+        U_Name = self[platform][user_id]['U_Name']
+        U_EnabledCard = self[platform][user_id]['U_EnabledCard']
+        U_Trust = self[platform][user_id]['U_Trust']
+        U_CriticalSuccess = self[platform][user_id]['U_CriticalSuccess']
+        U_ExtremeSuccess = self[platform][user_id]['U_ExtremeSuccess']
+        U_HardSuccess = self[platform][user_id]['U_HardSuccess']
+        U_RegularSuccess = self[platform][user_id]['U_RegularSuccess']
+        U_Failure = self[platform][user_id]['U_Failure']
+        U_Fumble = self[platform][user_id]['U_Fumble']
         cur = SQL_conn.connection.cursor()
         try:
-            cur.execute(pre_sql,(key,value,platform,user_id))
+            cur.execute(pre_sql,(U_Platform,user_id,U_Name,U_EnabledCard,U_Trust,U_CriticalSuccess,U_ExtremeSuccess,U_HardSuccess,U_RegularSuccess,U_Failure,U_Fumble))
             SQL_conn.connection.commit()
             cur.close()
             if SQL_conn.connection.total_changes == 0:
@@ -349,10 +387,11 @@ class User(dict):
             self.add_user(U_Platform=platform,U_ID=user_id)
             return {'id' : 1,'name' : '用户','data' : {"_null" : -1}}
         sql_conn = SQL(self.sql_path)
-        pre_sql = '''SELECT * FROM user_%d_%d WHERE 'Card_ID' == 1;'''%(platform,user_id)
         en_card = self[platform][user_id]['U_EnabledCard']
+        pre_sql = '''SELECT * FROM user_%d_%d WHERE Card_ID = %d;'''%(platform,user_id,en_card)
         try:
             print('### trying to get card')
+            print(pre_sql)
             sql_conn.cursor.execute(pre_sql)#,(en_card))
             temp = sql_conn.cursor.fetchone()
             if temp == None:
@@ -371,24 +410,27 @@ class User(dict):
         except:
             self.log(4,'无法读取人物卡数据！user.get_card')
             return {'id' : 1,'name' : '用户','data' : {"_null" : -1}}
-    def set_card(self,platform , user_id, card_dict ,card_name = None):   # 用st进行人物卡设置
+    def set_card(self,platform , user_id, card_dict ,card_name = None,en_card=-1):   # 用st进行人物卡设置
         if user_id not in self[platform]['user_list']:
             self.add_user(U_Platform=platform,U_ID=user_id)
         sql_conn = SQL(self.sql_path)
-        pre_sql = '''SELECT * FROM user_%d_%d WHERE 'Card_ID' IS ?;'''%(platform,user_id)
-        en_card = self[platform][user_id]['U_EnabledCard']
+        if en_card == -1:
+            en_card = self[platform][user_id]['U_EnabledCard']
+        pre_sql = '''SELECT * FROM user_%d_%d WHERE Card_ID = %d;'''%(platform,user_id,en_card)
         try:
-            sql_conn.cursor.execute(pre_sql,(en_card))
+            print(pre_sql)
+            sql_conn.cursor.execute(pre_sql)
             temp = sql_conn.cursor.fetchone()
             if temp == None:
                 temp = [1,'用户','{"_null" : -1}']
             card_id = temp[0]
+            print(temp)
             if card_name == None:
                 card_name = temp[1]
             card_json = temp[2]
             card_dict_all = json.loads(card_json)
             dict.update(card_dict_all,card_dict)        # 用新字典覆盖原有技能值
-            card_json = json.dumps(card_dict_all)
+            card_json = json.dumps(card_dict)
             # 进行更新
             pre_sql = '''INSERT OR REPLACE INTO user_%d_%d VALUES (?,?,?)'''%(platform,user_id)
             sql_conn.cursor.execute(pre_sql,(en_card,card_name,card_json))
@@ -411,15 +453,15 @@ class User(dict):
         try:
             # 进行更新
             if card_id == 1:    # 如果是标准卡1，则特殊操作
-                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d ('Card_Name','Card_JSON') VALUES ('用户标准人物卡','{}')'''%(platform,user_id)
-                sql_conn.cursor.execute(pre_sql,(card_id))
+                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d (Card_ID,Card_Name,Card_JSON) VALUES (1,'用户标准人物卡','{"_null" : -1}')'''%(platform,user_id)
+                sql_conn.cursor.execute(pre_sql)
                 sql_conn.connection.commit()
                 if sql_conn.connection.total_changes == 0:
                     self.log(3,'未能更改数据库数据!')
                     return False
                 return True
             else:
-                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d('Card_ID') VALUES (?)'''%(platform,user_id)
+                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d(Card_ID) VALUES (?)'''%(platform,user_id)
                 sql_conn.cursor.execute(pre_sql,(card_id))
                 sql_conn.connection.commit()
                 if sql_conn.connection.total_changes == 0:
@@ -433,23 +475,23 @@ class User(dict):
     def new_card_id(self,platform , user_id, card_name = '用户'):   # 用st进行人物卡设置
         if user_id not in self[platform]['user_list']:
             self.add_user(U_Platform=platform,U_ID=user_id)
-            return {}
+            return 1
         sql_conn = SQL(self.sql_path)
         try:
             # 进行更新
-            pre_sql = '''SELECT 'Card_ID' FROM user_%d_%d WHERE 'Card_Name' IS NULL ORDER BY 'Card_ID' ASC'''%(platform,user_id)
+            pre_sql = '''SELECT Card_ID FROM user_%d_%d WHERE Card_Name IS NULL ORDER BY Card_ID ASC'''%(platform,user_id)
             sql_conn.cursor.execute(pre_sql)
             temp = sql_conn.cursor.fetchone()
             if temp == None:
                 pre_sql = '''INSERT INTO user_%d_%d('Card_Name') VALUES (?)'''%(platform,user_id)
                 sql_conn.cursor.execute(pre_sql,(card_name))
-                pre_sql = '''SELECT 'Card_ID' FROM user_%d_%d ORDER BY 'Card_ID' DESC'''%(platform,user_id)
+                pre_sql = '''SELECT Card_ID FROM user_%d_%d ORDER BY Card_ID DESC'''%(platform,user_id)
                 sql_conn.cursor.execute(pre_sql)
                 temp = sql_conn.cursor.fetchone()
                 card_id = temp[0]
             else:
                 card_id = temp[0]
-                pre_sql = '''INSERT INTO user_%d_%d('Card_ID','Card_Name') VALUES (?,?)'''%(platform,user_id)
+                pre_sql = '''INSERT INTO user_%d_%d(Card_ID,Card_Name) VALUES (?,?)'''%(platform,user_id)
                 sql_conn.cursor.execute(pre_sql,(card_id,card_name))
             sql_conn.connection.commit()
             if sql_conn.connection.total_changes == 0:

@@ -9,14 +9,10 @@
 
 '''
 
-
-import re
 import OlivOS
 import rainydice
 import os
 import sys
-import json
-import sqlite3
 from rainydice.dice import rolldice
 from rainydice.diceClass import Dice
 global RainyDice
@@ -63,6 +59,7 @@ def bot_init(plugin_event,proc):
 
 
 def private_reply(plugin_event, Proc):
+    print(plugin_event.data)
     pass
 def heartbeat_reply(plugin_event,proc):
     pass
@@ -81,17 +78,32 @@ def group_reply(plugin_event, Proc):
     if Group_ID not in RainyDice.group[Group_Platform]['group_list']:
         RainyDice.group.add_group(Group_Platform=Group_Platform,Group_ID=Group_ID)
     # print(RainyDice.group)
-    if RainyDice.group[Group_Platform][Group_ID]['Group_isBotOn'] == 0 and isAtBot == False:
-        if message == '.bot' or message == '。bot' or message == '/bot':    # 私聊回应 .bot
-            plugin_event.send('private',User_ID,RainyDice.GlobalVal.GlobalMsg['BotMsg'])
+    if message == '.bot' or message == '。bot' or message == '/bot':    # 私聊回应 .bot
+        plugin_event.send('private',User_ID,RainyDice.GlobalVal.GlobalMsg['BotMsg'])
+        return None
+    elif message == '.bot on' or message == '。bot on' or message == '/bot on':    # 私聊回应 .bot
+        RainyDice.group.set('Group_isBotOn',1,Group_Platform,Group_ID)
+        reply = RainyDice.GlobalVal.GlobalMsg['BotOnReply']
+        reply = str.replace(reply,'[bot_name]',RainyDice.bot.data['name'])
+        plugin_event.reply(reply)
+        return None
+    elif message == '.bot off' or message == '。bot off' or message == '/bot off':    # 私聊回应 .bot
+        RainyDice.group.set('Group_isBotOn',0,Group_Platform,Group_ID)
+        reply = RainyDice.GlobalVal.GlobalMsg['BotOffReply']
+        reply = str.replace(reply,'[bot_name]',RainyDice.bot.data['name'])
+        plugin_event.reply(reply)
         return None
     # 记录log模块先不写
     # 【预留位置】
     # 如果群聊关闭且未at bot，则不回应
+    if RainyDice.group[Group_Platform][Group_ID]['Group_isBotOn'] == 0 and isAtBot == False:    # 如果没开启且没at bot 则不处理消息
+        return None
+    if message == '' :
+        return None
     if message[0] not in RainyDice.GlobalVal.Command_Start_Sign :
         return None
     if User_ID not in RainyDice.user[Group_Platform]['user_list']:  # 创建新用户
-        RainyDice.user.add_user(U_Platform=Group_Platform,U_ID=User_ID)
+        RainyDice.user.add_user(U_Platform=Group_Platform,U_ID=User_ID,sender = plugin_event.data.sender)
     message=message[1:].lower()
     message = message.rstrip()
     rd = rolldice()
@@ -116,7 +128,24 @@ def group_reply(plugin_event, Proc):
                 plugin_event.reply(reply)
         return 1
     elif message.startswith('sc'):
-        pass
+        if message == 'sc':
+            plugin_event.reply(RainyDice.GlobalVal.getHelpDoc('sc'))
+        else:
+            message=message[2:].rstrip()
+            # 返回 (状态码,是否为多处回复（T/F）,单回复信息或(('reply',message),('send',target_type,target_id,message),...))
+            status,isMultiReply ,reply = rd.SC(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            if isMultiReply:
+                for replypack in reply:
+                    if replypack[0] == 'reply':
+                        plugin_event.reply(replypack[1])
+                    elif replypack[0] == 'send':
+                        target_type = replypack[1]
+                        target_id = replypack[2]
+                        reply_msg = replypack[3]
+                        plugin_event.send(target_type,target_id,reply_msg)
+            else:
+                plugin_event.reply(reply)
+        return 1
     elif message.startswith('rb'):
         if message == 'rb':
             plugin_event.reply(RainyDice.GlobalVal.getHelpDoc('ra'))
@@ -134,7 +163,6 @@ def group_reply(plugin_event, Proc):
                         plugin_event.send(target_type,target_id,reply_msg)
             else:
                 plugin_event.reply(reply)
-            pass
         return 1
     elif message.startswith('rp'):
         if message == 'rb':
@@ -153,12 +181,19 @@ def group_reply(plugin_event, Proc):
                         plugin_event.send(target_type,target_id,reply_msg)
             else:
                 plugin_event.reply(reply)
-            pass
         return 1
-    elif message.startswith('rh'):
+    elif message.startswith('rh'):          # 懒得写到dice里面了，直接这样吧(#被拖走)
         if message == 'rh':
-            pass
-        pass
+            message = '1D100'
+        else:
+            message = message[2:]
+        status,isMultiReply ,reply = rd.RD(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+        reply = '在['+RainyDice.group[Group_Platform][Group_ID]['Group_Name']+']('+str(Group_ID)+')中，'+ reply
+        plugin_event.send('private',User_ID,reply)
+        reply_grp = RainyDice.GlobalVal.GlobalMsg['rhGroupReply']
+        user_name = RainyDice.user[Group_Platform][User_ID]['U_Name']
+        reply_grp = str.replace(reply_grp,'[User_Name]',user_name)
+        plugin_event.reply(reply_grp)
         return 1
     elif message.startswith('rd'):
         if message == 'rd':
@@ -179,11 +214,23 @@ def group_reply(plugin_event, Proc):
             plugin_event.reply(reply)
         return 1
     elif message.startswith('st'):
-        pass
-    elif message.startswith('log'):
-        pass
-    elif message.startswith('help'):
-        pass
+        if message == 'st':
+            plugin_event.reply(RainyDice.GlobalVal.getHelpDoc('st'))
+        else:
+            message=str.strip(message[2:])
+            status,isMultiReply ,reply = rd.ST(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            if isMultiReply:
+                for replypack in reply:
+                    if replypack[0] == 'reply':
+                        plugin_event.reply(replypack[1])
+                    elif replypack[0] == 'send':
+                        target_type = replypack[1]
+                        target_id = replypack[2]
+                        reply_msg = replypack[3]
+                        plugin_event.send(target_type,target_id,reply_msg)
+            else:
+                plugin_event.reply(reply)
+        return 1
     elif message.startswith('r'):
         if len(message) == 1:
             message = 'r1d100'
@@ -192,12 +239,26 @@ def group_reply(plugin_event, Proc):
         plugin_event.reply(reply)
         return 1
     elif message.startswith('nn'):
-        pass
+        if message == 'nn':
+            plugin_event.reply(RainyDice.GlobalVal.getHelpDoc('nn'))
+        else:
+            message=str.strip(message[2:])
+            name = str.strip(message)
+            RainyDice.user.set('U_Name',name,Group_Platform,User_ID)
+            reply = RainyDice.GlobalVal.GlobalMsg['nnReply']
+            # 'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]'
+            reply =str.replace(reply,'[User_Name]',plugin_event.data.sender['nickname'])
+            reply =str.replace(reply,'[New_Name]',name)
+            plugin_event.reply(reply)
+        return 1
     elif message.startswith('master'):
         pass
     elif message.startswith('admin'):
         pass
-    elif message.startswith('bot'):
+    elif message.startswith('log'):
         pass
-
+    elif message.startswith('help'):
+        pass
+    else:
+        return None
     
