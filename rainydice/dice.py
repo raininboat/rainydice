@@ -20,7 +20,7 @@ class rolldice(object):
         i = setcoc[8]
         x = total
         y = skill_val
-        if ((x < i) and (x <= setcoc[0]+setcoc[1])*y) or ((y >= i) and (x <= setcoc[2]+y*(setcoc[3]))):
+        if ((y < i) and (x <= setcoc[0]+setcoc[1])*y) or ((y >= i) and (x <= setcoc[2]+y*(setcoc[3]))):
             rank = 1    # 大成功
         elif ((y < i) and (x >= setcoc[4]+setcoc[5])*y) or ((y >= i) and (x >= setcoc[6]+y*(setcoc[7]))):
             rank = 6    # 大失败
