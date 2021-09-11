@@ -7,8 +7,6 @@
     COC 7th 常量
 
 '''
-import random
-random.seed()
 class Constant:
     def name_replace(self,skill_name):
         skill_name = str.strip(skill_name)
@@ -583,43 +581,3 @@ class Constant:
         '嗜外狂（Xenomania）：痴迷于异国的事物。',
         '喜兽癖（Zoomania）：对待动物的态度近乎疯狂地友好。',
     );
-    def RollLongInsanity():
-        status = random.choice(range(10))
-        text = '{nick}疯狂发作-总结症状：\n1D10='+str(status+1)+'\n'+Constant.LongInsanity[status]
-        temp = random.choice(range(10))
-        addTxt = '1D10=' + str(temp+1)
-        text = text.replace('[var_a]',addTxt)
-        if  status == 8 :
-            temp = random.choice(range(100))
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strFear[temp]
-            text = text.replace("[var_c]",addTxt)
-        elif status == 9:
-            temp = random.choice(range(100))
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strPanic[temp]
-            text = text.replace("[var_c]",addTxt)           
-        return text
-
-    def RollTempInsanity():
-        status = random.choice(range(10))
-        text = '{nick}疯狂发作-临时症状：\n1D10='+str(status+1)+'\n'+Constant.TempInsanity[status]
-        temp = random.choice(range(10))
-        addTxt = '1D10=' + str(temp+1)
-        text = text.replace("[var_a]",addTxt)
-        if  status == 8 :
-            temp = random.choice(range(100))
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strFear[temp]
-            text = text.replace("[var_c]",addTxt)
-        elif status == 9:
-            temp = random.choice(range(100))
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strPanic[temp]
-            text = text.replace("[var_c]",addTxt)
-        return text
-        

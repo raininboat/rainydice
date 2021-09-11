@@ -27,7 +27,7 @@ class GlobalVal(object):
         'InputErr' : '请认真核对输入的内容！',
         'GroupCmdErr':'[Command_Name]只能在群聊中使用',
         'SkillUnsetErr' : '[Skill_Name]技能值未设定！\n请先使用 .st 进行设定',
-        'rdReply' : '[User_Name]进行投掷:\n[DiceExp]=[Result]',
+        'rdReply' : '[User_Name]进行投掷:\n[DiceExp]=[DiceStep]=[Result]',
         'raReply' : '[User_Name]进行[Skill_Name]检定:\nD100 = [Result] / [Skill_Val] [Rank]',
         'rbpReply' : '[User_Name]进行[Skill_Name]检定:\nD100 = [rdResult] [[Sign]骰:[ROLL_List]] = [Result] / [Skill_Val] [Rank]',
         'rhGroupReply' : '[User_Name]进行了一次暗骰',
@@ -42,11 +42,21 @@ class GlobalVal(object):
         'stShowReply' : '[User_Name]的人物卡[[Card_ID]][[Card_Name]]中属性【[Skill_Name]】为：[Skill_Val]',
         'stChangeReply' : '已记录[User_Name]的属性变化:\n[Skill_Name]：[Skill_Val][Change_Expression] = [Skill_Val][Change_Result] = [Skill_Val_Result]',
         'stNewCardReply' : '已记录[User_Name]的人物卡S\n[[Card_ID]][[Card_Name]]',
-        'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]'
+        'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]',
+        'OnlyInGroup' : '该指令只能在群聊中使用！',
+        'setcocReply' : '群聊房规属性已改为[setcoc]:\n[setcocExplain]'
         
     }
     GlobalVal = {
-        'rankName' : ["【未知情况】","大成功","极难成功","困难成功","成功","失败","大失败"]
+        'rankName' : ["【未知情况】","大成功","极难成功","困难成功","成功","失败","大失败"],
+        'setcocExplain' :[
+            '规则书\n出1大成功\n不满50出96 - 100大失败，满50出100大失败',
+            '不满50出1大成功，满50出1 - 5大成功\n不满50出96 - 100大失败，满50出100大失败',
+            '出1 - 5且 <= 成功率大成功\n出100或出96 - 99且 > 成功率大失败',
+            '出1 - 5大成功\n出96 - 100大失败',
+            '出1 - 5且 <= 十分之一大成功\n不满50出 >= 96 + 十分之一大失败，满50出100大失败(全部使用整除)',
+            '出1 - 2且 < 五分之一大成功\n不满50出96 - 100大失败，满50出99 - 100大失败(全部使用整除)'
+            ]
     }
     HelpDoc = {
         'ra' : 'ra/rc帮助信息',

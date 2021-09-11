@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 '''
    ___  ___   _____  ____  __
@@ -12,29 +11,40 @@
 import re
 from rainydice.diceClass import Dice
 from rainydice.constant import Constant
-from rainydice.calculate import RPN
+from rainydice.cal_btree import calculate
 from random import randint
 class rolldice(object):
     intdict = { '0' : 0, '1' : 1, '2' : 2, '3' : 3, '4' : 4, '5' : 5, '6' : 6, '7' : 7, '8' : 8, '9' : 9 }
-    def _RaSuccess(self,total,skill_val,setcoc=[1,0,1,0,96,0,100,0,50]):
-        i = setcoc[8]
+    def __init__(self,cocRankCheck):
+        self.cocRankCheck = cocRankCheck
+        pass
+    def _RaSuccess(self,total,skill_val,setcoc=0):
+        mode = setcoc
         x = total
         y = skill_val
-        if ((y < i) and (x <= setcoc[0]+setcoc[1])*y) or ((y >= i) and (x <= setcoc[2]+y*(setcoc[3]))):
+        if setcoc not in self.cocRankCheck:
+            setcoc = 0
+        if self.cocRankCheck[setcoc]['critical'](x,y):
             rank = 1    # 大成功
-        elif ((y < i) and (x >= setcoc[4]+setcoc[5])*y) or ((y >= i) and (x >= setcoc[6]+y*(setcoc[7]))):
+            return rank
+        elif self.cocRankCheck[setcoc]['fumble'](x,y):
             rank = 6    # 大失败
-        elif x<= y/5 :
+            return rank
+        if x<= y/5 :
             rank = 2    # 极难成功
+            return rank
         elif x <= y/2 :
             rank = 3    # 困难成功
+            return rank
         elif x <= y :
             rank = 4    # 成功
+            return rank
         elif x > y :
             rank = 5    # 失败
+            return rank
         else:
-            rank = 0
-        return rank
+            rank = 0    # 未知错误
+            return rank
     def _rd(self,sign):
         if sign == 0 :
             rollResult = randint(1,100)
@@ -144,7 +154,7 @@ class rolldice(object):
         if group_id != 0:
             setcoc = RainyDice.group[platform][group_id]['setcoc']
         else :
-            setcoc = [1,0,1,0,96,0,100,0,50]
+            setcoc = 0
         rankName = RainyDice.GlobalVal.GlobalVal['rankName']
         user_name = RainyDice.user[platform][user_id]['U_Name']#card['name']
         # print('sign : '+str(sign))
@@ -196,35 +206,36 @@ class rolldice(object):
         else:
             return 1 , False , reply
     def RD(Self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
-        cal = RPN()
+        maxStepLen = 200
         message = str.strip(message)
         reobj = re.match('([\d\-\+\*/\(\)dD]+)(.*)',message,re.I)
         if reobj == None:
             reply = RainyDice.GlobalVal.GlobalMsg['InputErr'] +'\n'+message
             # plugin_event.reply(reply)
             return 1 , False , reply
-        try:
-            dice_exp , reason = reobj.groups()
-            result = cal.calculate(dice_exp)
-            user_name = RainyDice.user[platform][user_id]['U_Name']
-            reply = RainyDice.GlobalVal.GlobalMsg['rdReply']            # '[User_Name]进行投掷:\n[DiceExp]=[Result]',
-            reply = str.replace(reply,'[User_Name]',user_name)
-            reply = str.replace(reply,'[DiceExp]',dice_exp)
-            reply = str.replace(reply,'[Result]',str(result))
-            # plugin_event.reply(reply)
-            if reason != None and reason != '':
-                reply = '由于'+reason +','+reply
-            return 1 , False , reply
-        except:
-            reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
-            # plugin_event.reply(reply)
-            return 1 , False , reply
+        dice_exp , reason = reobj.groups()
+        status,result,step = calculate(dice_exp)
+        if status == False:
+            return 1 , False , step
+        user_name = RainyDice.user[platform][user_id]['U_Name']
+        reply = RainyDice.GlobalVal.GlobalMsg['rdReply']            # '[User_Name]进行投掷:\n[DiceExp]=[DiceStep]=[Result]',
+        reply = str.replace(reply,'[User_Name]',user_name)
+        reply = str.replace(reply,'[DiceExp]',dice_exp)
+        if len(step)<=maxStepLen:
+            reply = str.replace(reply,'[DiceStep]',step)
+        else:
+            reply = str.replace(reply,'[DiceStep]=','')
+        reply = str.replace(reply,'[Result]',str(result))
+        # plugin_event.reply(reply)
+        if reason != None and reason != '':
+            reply = '由于'+reason +','+reply
+        return 1 , False , reply
     def SC(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
         if message.find('/') == -1:
             reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
             return -1 ,False, reply
         scExp = str.split(message,'/',1)
-        cal = RPN()
+        
         card = RainyDice.user.get_card(platform=platform,user_id=user_id)
         # skill_name = '理智'
         # print(card['data'])
@@ -235,25 +246,21 @@ class rolldice(object):
         if group_id != 0:
             setcoc = RainyDice.group[platform][group_id]['setcoc']
         else :
-            setcoc = [1,0,1,0,96,0,100,0,50]
+            setcoc = 0
         rankName = RainyDice.GlobalVal.GlobalVal['rankName']
         user_name = RainyDice.user[platform][user_id]['U_Name']#card['name']
         rollResult = randint(1,100)
         sanlose = 0
         reply = RainyDice.GlobalVal.GlobalMsg['scReply']
         if rollResult <= san:
-            try:
-                sanlose = cal.calculate(scExp[0])
-            except:
-                reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
-                return -1 ,False, reply
+            status,sanlose,step = calculate(scExp[0])
+            if status ==False:
+                return -1 ,False, step
             reply = str.replace(reply,'[San_Lose_Expression]',scExp[0])
         else:
-            try:
-                sanlose = cal.calculate(scExp[1])
-            except:
-                reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
-                return -1 ,False, reply
+            status,sanlose,step = calculate(scExp[0])
+            if status ==False:
+                return -1 ,False, step
             reply = str.replace(reply,'[San_Lose_Expression]',scExp[1])
         rank = self._RaSuccess(rollResult,san,setcoc)
         nowSan = san - sanlose
@@ -391,9 +398,9 @@ class rolldice(object):
             reply = RainyDice.GlobalVal.GlobalMsg['stSetReply']
             status,card_new = self.__STCard(card_id=card['id'],card_name=card['name'],text=message)
             if status:
-                print(card)
+                #print(card)
                 card['data'].update(card_new['data'])
-                print(card)
+                #print(card)
                 user_name = RainyDice.user[platform][user_id]['U_Name']
                 RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=card['name'])
                 return 1, False,reply
@@ -429,7 +436,6 @@ class rolldice(object):
     def __STChange(self,card,stChange,reply):
         # 'stChangeReply' : '已记录[User_Name]的属性变化:\n[Skill_Name]：[Skill_Val][Change_Expression]=[Skill_Val][Change_Result]=[Skill_Val_Result]',
         cons = Constant()
-        cal = RPN()
         skill_name =  cons.name_replace(skill_name=stChange[0])
         changeExp = stChange[1]
         skill_val = 0
@@ -437,26 +443,93 @@ class rolldice(object):
             skill_val = card['data'][skill_name]
         else:
             skill_val = cons.get_default_val(skill_name=skill_name)
-        try:
-            if stChange[2] == '+':
-                change_result = cal.calculate(changeExp)
-                skill_changed = skill_val + change_result
-                changeExp = ' + '+changeExp
-                change_result_str = ' + '+str(change_result)
-            elif stChange[2] == '-':
-                change_result = cal.calculate(changeExp)
-                skill_changed = skill_val - change_result
-                changeExp = ' - '+changeExp
-                change_result_str = ' - '+str(change_result)
-            if skill_changed <= 0:      # 技能值非负
-                skill_changed = 0
-            card['data'][skill_name] = skill_changed
-            reply = str.replace(reply,'[User_Name]',card['name'])
-            reply = str.replace(reply,'[Skill_Name]',skill_name)
-            reply = str.replace(reply,'[Skill_Val]',str(skill_val))  
-            reply = str.replace(reply,'[Change_Expression]',changeExp)
-            reply = str.replace(reply,'[Change_Result]',change_result_str)
-            reply = str.replace(reply,'[Skill_Val_Result]',str(skill_changed))            
-            return True , card , reply
-        except:
-            return False , {} , ''
+        if stChange[2] == '+':
+            status,change_result,step = calculate(changeExp)
+            if status == False:
+                return False , {} , ''
+            skill_changed = skill_val + change_result
+            changeExp = ' + '+changeExp
+            change_result_str = ' + '+str(change_result)
+        elif stChange[2] == '-':
+            status,change_result,step = calculate(changeExp)
+            if status == False:
+                return False , {} , ''
+            skill_changed = skill_val - change_result
+            changeExp = ' - '+changeExp
+            change_result_str = ' - '+str(change_result)
+        if skill_changed <= 0:      # 技能值非负
+            skill_changed = 0
+        card['data'][skill_name] = skill_changed
+        reply = str.replace(reply,'[User_Name]',card['name'])
+        reply = str.replace(reply,'[Skill_Name]',skill_name)
+        reply = str.replace(reply,'[Skill_Val]',str(skill_val))  
+        reply = str.replace(reply,'[Change_Expression]',changeExp)
+        reply = str.replace(reply,'[Change_Result]',change_result_str)
+        reply = str.replace(reply,'[Skill_Val_Result]',str(skill_changed))            
+        return True , card , reply
+
+    def LI(self):
+        status = randint(0,9)
+        text = '{nick}疯狂发作-总结症状：\n1D10='+str(status+1)+'\n'+Constant.LongInsanity[status]
+        temp = randint(0,9)
+        addTxt = '1D10=' + str(temp+1)
+        text = text.replace('[var_a]',addTxt)
+        if  status == 8 :
+            temp = randint(0,99)
+            addTxt = "1D100="+str(temp+1)
+            text = text.replace("[var_b]",addTxt)
+            addTxt = Constant.strFear[temp]
+            text = text.replace("[var_c]",addTxt)
+        elif status == 9:
+            temp = randint(0,99)
+            addTxt = "1D100="+str(temp+1)
+            text = text.replace("[var_b]",addTxt)
+            addTxt = Constant.strPanic[temp]
+            text = text.replace("[var_c]",addTxt)           
+        return 1,False , text
+
+    def TI(self):
+        status = randint(0,9)
+        text = '{nick}疯狂发作-临时症状：\n1D10='+str(status+1)+'\n'+Constant.TempInsanity[status]
+        temp = randint(0,9)
+        addTxt = '1D10=' + str(temp+1)
+        text = text.replace("[var_a]",addTxt)
+        if  status == 8 :
+            temp = randint(0,99)
+            addTxt = "1D100="+str(temp+1)
+            text = text.replace("[var_b]",addTxt)
+            addTxt = Constant.strFear[temp]
+            text = text.replace("[var_c]",addTxt)
+        elif status == 9:
+            temp = randint(0,99)
+            addTxt = "1D100="+str(temp+1)
+            text = text.replace("[var_b]",addTxt)
+            addTxt = Constant.strPanic[temp]
+            text = text.replace("[var_c]",addTxt)
+        return 1,False,text
+    def SETCOC(self,plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID = 0):
+        if message in self.intdict:
+            setcoc = self.intdict[message]
+            if setcoc > 5:
+                reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
+                return -1 ,False,reply
+            if Group_ID != 0:
+                status = RainyDice.group.set('setcoc',[setcoc],Group_Platform,Group_ID)
+                if status == False:
+                    reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
+                    return -1 ,False,reply
+                reply = RainyDice.GlobalVal.GlobalMsg['setcocReply']
+                #'setcocReply' : '群聊房规属性已改为[setcoc]:\n[setcocExplain]'
+                setcocExplain = RainyDice.GlobalVal.GlobalVal['setcocExplain'][setcoc]
+                reply = str.replace(reply,'[setcoc]',str(setcoc))
+                reply = str.replace(reply,'[setcocExplain]',setcocExplain)
+                return 1 ,False,reply
+            else :
+                reply = RainyDice.GlobalVal.GlobalMsg['OnlyInGroup']
+                return -1 ,False,reply
+        else :
+            reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
+            return -1 ,False,reply
+    def EN(self,plugin_event,Proc,RainyDice:Dice,message:str,user_id:int,platform:int,group_id = 0):
+        
+        pass
