@@ -1,4 +1,7 @@
 class GlobalVal(object):
+    def __init__(self,cocrank:dict):
+        for i,v in cocrank.items():
+            self.GlobalVal['setcocExplain'][i]=v['text']
     def getHelpDoc(self,key='') : # 最大子串不会先不做了，现在只是自动把&关联项转换完毕
         if key in self.HelpDoc:
             temp = self.HelpDoc[key]
@@ -49,14 +52,8 @@ class GlobalVal(object):
     }
     GlobalVal = {
         'rankName' : ["【未知情况】","大成功","极难成功","困难成功","成功","失败","大失败"],
-        'setcocExplain' :[
-            '规则书\n出1大成功\n不满50出96 - 100大失败，满50出100大失败',
-            '不满50出1大成功，满50出1 - 5大成功\n不满50出96 - 100大失败，满50出100大失败',
-            '出1 - 5且 <= 成功率大成功\n出100或出96 - 99且 > 成功率大失败',
-            '出1 - 5大成功\n出96 - 100大失败',
-            '出1 - 5且 <= 十分之一大成功\n不满50出 >= 96 + 十分之一大失败，满50出100大失败(全部使用整除)',
-            '出1 - 2且 < 五分之一大成功\n不满50出96 - 100大失败，满50出99 - 100大失败(全部使用整除)'
-            ]
+        'setcocExplain' :[None]*20                                                                          # 已废弃，请修改randcheck
+
     }
     HelpDoc = {
         'ra' : 'ra/rc帮助信息',

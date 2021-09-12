@@ -19,14 +19,13 @@ class rolldice(object):
         self.cocRankCheck = cocRankCheck
         pass
     def _RaSuccess(self,total,skill_val,setcoc=0):
-        mode = setcoc
         x = total
         y = skill_val
         if setcoc not in self.cocRankCheck:
             setcoc = 0
-        if self.cocRankCheck[setcoc]['critical'](x,y):
-            rank = 1    # 大成功
-            return rank
+        if self.cocRankCheck[setcoc]['critical'](x,y):          # 大成功大失败判定默认版在 cocRankCheckDefault.py 中
+            rank = 1    # 大成功                                # 具体载入的版本为 data/rainydice/conf/rankcheck.py 
+            return rank                                         # 对象位置在 RainyDice.cocRankCheck
         elif self.cocRankCheck[setcoc]['fumble'](x,y):
             rank = 6    # 大失败
             return rank
@@ -208,7 +207,7 @@ class rolldice(object):
     def RD(Self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
         maxStepLen = 200
         message = str.strip(message)
-        reobj = re.match('([\d\-\+\*/\(\)dD]+)(.*)',message,re.I)
+        reobj = re.match('([\d\-\+\*/\(\)dkqpbma]+)(.*)',message,re.I)
         if reobj == None:
             reply = RainyDice.GlobalVal.GlobalMsg['InputErr'] +'\n'+message
             # plugin_event.reply(reply)
@@ -510,11 +509,11 @@ class rolldice(object):
     def SETCOC(self,plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID = 0):
         if message in self.intdict:
             setcoc = self.intdict[message]
-            if setcoc > 5:
-                reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
-                return -1 ,False,reply
+            # if setcoc > 5:
+            #     reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
+            #     return -1 ,False,reply
             if Group_ID != 0:
-                status = RainyDice.group.set('setcoc',[setcoc],Group_Platform,Group_ID)
+                status = RainyDice.group.set('setcoc',setcoc,Group_Platform,Group_ID)
                 if status == False:
                     reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
                     return -1 ,False,reply

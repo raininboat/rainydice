@@ -18,8 +18,9 @@ class Dice(object):
         self.bot = bot(sql_path=self.sql_path,log = log)
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
-        self.GlobalVal = GlobalVal.GlobalVal
-        
+        self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck)
+
+
 class bot(object):
     def __init__(self,sql_path,log):
         self.log = log
