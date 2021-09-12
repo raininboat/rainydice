@@ -308,7 +308,7 @@ def group_reply(plugin_event, Proc):
             plugin_event.reply(reply)
         return 1
     elif message.startswith('li'):
-        status,isMultiReply ,reply = rd.LI()
+        status,isMultiReply ,reply = rd.LI(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
         if isMultiReply:
             for replypack in reply:
                 if replypack[0] == 'reply':
@@ -322,7 +322,7 @@ def group_reply(plugin_event, Proc):
             plugin_event.reply(reply)
         return 1
     elif message.startswith('ti'):
-        status,isMultiReply ,reply = rd.TI()
+        status,isMultiReply ,reply = rd.TI(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
         if isMultiReply:
             for replypack in reply:
                 if replypack[0] == 'reply':

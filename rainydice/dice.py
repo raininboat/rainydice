@@ -467,9 +467,10 @@ class rolldice(object):
         reply = str.replace(reply,'[Skill_Val_Result]',str(skill_changed))            
         return True , card , reply
 
-    def LI(self):
+    def LI(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
         status = randint(0,9)
-        text = '{nick}疯狂发作-总结症状：\n1D10='+str(status+1)+'\n'+Constant.LongInsanity[status]
+        user_name = RainyDice.user[platform][user_id]['U_Name']
+        text = user_name+'疯狂发作-总结症状：\n1D10='+str(status+1)+'\n'+Constant.LongInsanity[status]
         temp = randint(0,9)
         addTxt = '1D10=' + str(temp+1)
         text = text.replace('[var_a]',addTxt)
@@ -487,9 +488,10 @@ class rolldice(object):
             text = text.replace("[var_c]",addTxt)           
         return 1,False , text
 
-    def TI(self):
+    def TI(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
         status = randint(0,9)
-        text = '{nick}疯狂发作-临时症状：\n1D10='+str(status+1)+'\n'+Constant.TempInsanity[status]
+        user_name = RainyDice.user[platform][user_id]['U_Name']
+        text = user_name+'疯狂发作-临时症状：\n1D10='+str(status+1)+'\n'+Constant.TempInsanity[status]
         temp = randint(0,9)
         addTxt = '1D10=' + str(temp+1)
         text = text.replace("[var_a]",addTxt)
