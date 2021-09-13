@@ -8,7 +8,8 @@
     RainyDice 跑团投掷机器人服务 by RainyZhou
         COC 7th 常量 内容部分参考 COC7th规则书 和 仑质编写的[OlivaDice]<http://oliva.dice.center/>
 
-    Copyright (C) 2021 RainyZhou
+    Copyright (C) 2021  RainyZhou  
+                        Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
 
@@ -24,8 +25,6 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
-
-    Contact Email: thunderain_zhou@163.com
 
 '''
 

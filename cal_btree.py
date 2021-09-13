@@ -7,7 +7,8 @@
                              
     四则运算实现(含d运算)
 
-    Copyright (C) 2021 RainyZhou
+    Copyright (C) 2021  RainyZhou  
+                        Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
 
@@ -23,8 +24,6 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
-
-    Contact Email: thunderain_zhou@163.com
 
 '''
 from random import randint

@@ -8,7 +8,8 @@
     RainyDice 跑团投掷机器人服务 by RainyZhou
         存储类
 
-    Copyright (C) 2021 RainyZhou
+    Copyright (C) 2021  RainyZhou  
+                        Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
 
@@ -24,8 +25,6 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
-
-    Contact Email: thunderain_zhou@163.com
 
 '''
 
@@ -188,7 +187,13 @@ class Group(dict):
                 for i in range(len(self.key)):
                     self[group_temp_val[0]][group_temp_val[1]][self.key[i]] = group_temp_val[i]
                 s_json = self[group_temp_val[0]][group_temp_val[1]]['Group_JSON']
-                dict.update(self[group_temp_val[0]][group_temp_val[1]],json.loads(s_json))
+                tmpjson = json.loads(s_json)
+                if type(tmpjson['setcoc']) == list:
+                    if len(tmpjson['setcoc'])!= 1:
+                        tmpjson['setcoc'] = 0
+                    else:
+                        tmpjson['setcoc'] = tmpjson['setcoc'][0]
+                dict.update(self[group_temp_val[0]][group_temp_val[1]],tmpjson)
                 # self[group_temp_val[0]][group_temp_val[1]] = json.loads(s_json)
         SQL_conn.cursor.close()
         self.sql_path = sql_path

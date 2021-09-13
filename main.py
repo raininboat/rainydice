@@ -9,7 +9,8 @@
         主文件
     其中编写内容有参考 仑质编写的[OlivaDice]<http://oliva.dice.center/> 特此鸣谢！
 
-    Copyright (C) 2021 RainyZhou
+    Copyright (C) 2021  RainyZhou  
+                        Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
 
@@ -26,10 +27,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
-    Contact Email: thunderain_zhou@163.com
-
 '''
-
 # import OlivOS
 # import rainydice
 import os
