@@ -1,6 +1,9 @@
 # Rainy Dice 跑团机器人
 
-本插件适用于仑质编写的[OlivOS青果核心交互栈](https://github.com/OlivOS-Team/OlivOS)，内容有参考仑质的[OlivaDice(DIXE)](https://github.com/lunzhiPenxil/Dice)
+本插件适用于仑质编写的[OlivOS青果核心交互栈](https://github.com/OlivOS-Team/OlivOS)，内容有参考仑质的[OlivaDice(DIXE)](https://github.com/lunzhiPenxil/Dice)<br>
+## 插件仓库位置:
+>`正式库`：[github](https://github.com/raininboat/rainydice)<br>
+>`备份库`：[gitee](https://gitee.com/thunderain_zhou/rainydice)
 &nbsp;
 ## 当前完成的功能列表
 - `.st` 技能设置指令 包含：.st show / del / clr / name (设置当前人物卡名称）/  标准半自动人物卡的st输入 / .st 技能 +-表达式

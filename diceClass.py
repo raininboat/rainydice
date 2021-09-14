@@ -346,11 +346,12 @@ class User(dict):
         self.sql_path = sql_path
     # 添加新用户
     def add_user(self,U_Platform,U_ID,U_Name='用户',sender = {},U_EnabledCard=1,U_Trust=0,U_CriticalSuccess=0,U_ExtremeSuccess=0,U_HardSuccess=0,U_RegularSuccess=0,U_Failure=0,U_Fumble=0):
+        # 'sender': {'age': 0, 'area': '', 'card': '', 'level': '', 'nickname': '雨鸣于舟', 'role': 'owner', 'sex': 'unknown', 'title': 'Master', 'user_id': 1620706761},
+        if sender != {}:
+            if U_Name == '用户':
+                U_Name = sender['nickname']
         if U_ID not in self[U_Platform]['user_list']:
             self[U_Platform]['user_list'].append(U_ID)
-        if sender != {}:
-            if U_Name != '用户':
-                U_Name = sender['nickname']
         self[U_Platform][U_ID] = {
             'U_Platform' : U_Platform,
             'U_ID' : U_ID ,

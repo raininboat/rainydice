@@ -190,17 +190,7 @@ def group_reply(plugin_event, Proc):
             message=message[2:].rstrip()
             # 返回 (状态码(判断是否正常，或错误类型，目前没搞只是留好接口),是否为多处回复（T/F）,单回复信息或(('reply',message),('send',target_type,target_id,message),...))
             status,isMultiReply ,reply = rd.RA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            if isMultiReply:
-                for replypack in reply:
-                    if replypack[0] == 'reply':
-                        plugin_event.reply(replypack[1])
-                    elif replypack[0] == 'send':
-                        target_type = replypack[1]
-                        target_id = replypack[2]
-                        reply_msg = replypack[3]
-                        plugin_event.send(target_type,target_id,reply_msg)
-            else:
-                plugin_event.reply(reply)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('sc'):
         if message == 'sc':
@@ -209,17 +199,7 @@ def group_reply(plugin_event, Proc):
             message=message[2:].rstrip()
             # 返回 (状态码,是否为多处回复（T/F）,单回复信息或(('reply',message),('send',target_type,target_id,message),...))
             status,isMultiReply ,reply = rd.SC(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            if isMultiReply:
-                for replypack in reply:
-                    if replypack[0] == 'reply':
-                        plugin_event.reply(replypack[1])
-                    elif replypack[0] == 'send':
-                        target_type = replypack[1]
-                        target_id = replypack[2]
-                        reply_msg = replypack[3]
-                        plugin_event.send(target_type,target_id,reply_msg)
-            else:
-                plugin_event.reply(reply)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('rb'):
         if message == 'rb':
@@ -227,17 +207,7 @@ def group_reply(plugin_event, Proc):
         else:
             message=message[1:]
             status,isMultiReply ,reply = rd.RA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            if isMultiReply:
-                for replypack in reply:
-                    if replypack[0] == 'reply':
-                        plugin_event.reply(replypack[1])
-                    elif replypack[0] == 'send':
-                        target_type = replypack[1]
-                        target_id = replypack[2]
-                        reply_msg = replypack[3]
-                        plugin_event.send(target_type,target_id,reply_msg)
-            else:
-                plugin_event.reply(reply)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('rp'):
         if message == 'rb':
@@ -245,21 +215,11 @@ def group_reply(plugin_event, Proc):
         else:
             message=message[1:]
             status,isMultiReply ,reply = rd.RA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            if isMultiReply:
-                for replypack in reply:
-                    if replypack[0] == 'reply':
-                        plugin_event.reply(replypack[1])
-                    elif replypack[0] == 'send':
-                        target_type = replypack[1]
-                        target_id = replypack[2]
-                        reply_msg = replypack[3]
-                        plugin_event.send(target_type,target_id,reply_msg)
-            else:
-                plugin_event.reply(reply)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('rh'):          # 懒得写到dice里面了，直接这样吧(#被拖走)
         if message == 'rh':
-            message = '1D100'
+            message = '1d100'
         else:
             message = message[2:]
         status,isMultiReply ,reply = rd.RD(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
@@ -272,21 +232,11 @@ def group_reply(plugin_event, Proc):
         return 1
     elif message.startswith('rd'):
         if message == 'rd':
-            message = '1D100'
+            message = '1d100'
         else:
             message = '1'+message[1:]
         status,isMultiReply ,reply = rd.RD(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-        if isMultiReply:
-            for replypack in reply:
-                if replypack[0] == 'reply':
-                    plugin_event.reply(replypack[1])
-                elif replypack[0] == 'send':
-                    target_type = replypack[1]
-                    target_id = replypack[2]
-                    reply_msg = replypack[3]
-                    plugin_event.send(target_type,target_id,reply_msg)
-        else:
-            plugin_event.reply(reply)
+        send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('st'):
         if message == 'st':
@@ -294,17 +244,7 @@ def group_reply(plugin_event, Proc):
         else:
             message=str.strip(message[2:])
             status,isMultiReply ,reply = rd.ST(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            if isMultiReply:
-                for replypack in reply:
-                    if replypack[0] == 'reply':
-                        plugin_event.reply(replypack[1])
-                    elif replypack[0] == 'send':
-                        target_type = replypack[1]
-                        target_id = replypack[2]
-                        reply_msg = replypack[3]
-                        plugin_event.send(target_type,target_id,reply_msg)
-            else:
-                plugin_event.reply(reply)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('r'):
         if len(message) == 1:
@@ -328,31 +268,11 @@ def group_reply(plugin_event, Proc):
         return 1
     elif message.startswith('li'):
         status,isMultiReply ,reply = rd.LI(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-        if isMultiReply:
-            for replypack in reply:
-                if replypack[0] == 'reply':
-                    plugin_event.reply(replypack[1])
-                elif replypack[0] == 'send':
-                    target_type = replypack[1]
-                    target_id = replypack[2]
-                    reply_msg = replypack[3]
-                    plugin_event.send(target_type,target_id,reply_msg)
-        else:
-            plugin_event.reply(reply)
+        send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('ti'):
         status,isMultiReply ,reply = rd.TI(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-        if isMultiReply:
-            for replypack in reply:
-                if replypack[0] == 'reply':
-                    plugin_event.reply(replypack[1])
-                elif replypack[0] == 'send':
-                    target_type = replypack[1]
-                    target_id = replypack[2]
-                    reply_msg = replypack[3]
-                    plugin_event.send(target_type,target_id,reply_msg)
-        else:
-            plugin_event.reply(reply)
+        send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('setcoc'):
         if message == 'setcoc':
@@ -360,17 +280,7 @@ def group_reply(plugin_event, Proc):
         else:
             message=str.strip(message[6:])
             status,isMultiReply ,reply = rd.SETCOC(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            if isMultiReply:
-                for replypack in reply:
-                    if replypack[0] == 'reply':
-                        plugin_event.reply(replypack[1])
-                    elif replypack[0] == 'send':
-                        target_type = replypack[1]
-                        target_id = replypack[2]
-                        reply_msg = replypack[3]
-                        plugin_event.send(target_type,target_id,reply_msg)
-            else:
-                plugin_event.reply(reply)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1   
     elif message.startswith('en'):
         if message == 'en':
@@ -378,17 +288,7 @@ def group_reply(plugin_event, Proc):
         else:
             message=str.strip(message[2:])
             status,isMultiReply ,reply = rd.EN(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            if isMultiReply:
-                for replypack in reply:
-                    if replypack[0] == 'reply':
-                        plugin_event.reply(replypack[1])
-                    elif replypack[0] == 'send':
-                        target_type = replypack[1]
-                        target_id = replypack[2]
-                        reply_msg = replypack[3]
-                        plugin_event.send(target_type,target_id,reply_msg)
-            else:
-                plugin_event.reply(reply)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('master'):
         pass
@@ -401,3 +301,16 @@ def group_reply(plugin_event, Proc):
     else:
         return None
     
+# 从dice处理的消息进行回复模块
+def send_reply(plugin_event,proc,status,isMultiReply ,reply):
+    if isMultiReply:
+        for replypack in reply:
+            if replypack[0] == 'reply':
+                plugin_event.reply(replypack[1])
+            elif replypack[0] == 'send':
+                target_type = replypack[1]
+                target_id = replypack[2]
+                reply_msg = replypack[3]
+                plugin_event.send(target_type,target_id,reply_msg)
+    else:
+        plugin_event.reply(reply)
