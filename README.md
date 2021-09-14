@@ -1,47 +1,32 @@
 # Rainy Dice 跑团机器人
 
 本插件适用于仑质编写的[OlivOS青果核心交互栈](https://github.com/OlivOS-Team/OlivOS)，内容有参考仑质的[OlivaDice(DIXE)](https://github.com/lunzhiPenxil/Dice)
-
+&nbsp;
 ## 当前完成的功能列表
-
 -  .st 技能设置指令 包含：.st show / del / clr / name (设置当前人物卡名称）/  标准半自动人物卡的st输入 / .st 技能 +-表达式
-
 - .r 投掷指令 包含正常带括号的四则运算    (符合骰娘标准实现，详见【骰娘指令标准.txt】，未进行大规模测试，可能有bug！)
-
 - .ra 检定指令 含bp（奖励骰惩罚骰）h（暗骰） 不含#多轮检定     (未符合骰娘标准实现，未来需重构)
-
 - .nn 设置用户名称
-
 - .sc 理智检定
-
 - .setcoc 房规设置
-
 - .ti / .li 疯狂症状
-
+- .en 成长检定(未进行测试)
 &nbsp;
 
 ## 下一步将要实现的功能
-
-- .en 成长检定
-
+- .log 跑团记录
 - .ra 指令重构
-
 - 多人物卡
-
 &nbsp;
 
 ## 未来准备实现的内容
-
 （咕咕咕咕咕咕了）
-
-- .log 跑团记录
-
+### _标准骰娘功能_
 - .pc 多人物卡
-
 - .draw 抽卡
-
 - 。。。
-
+### _特色功能_
+- .combat 战斗轮提醒
 &nbsp;
 
 ## 最后
