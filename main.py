@@ -31,7 +31,7 @@
 # import OlivOS
 # import rainydice
 import os
-from plugin.app import rainydice
+# from plugin.app import rainydice
 import sys
 from rainydice.dice import rolldice
 from rainydice.diceClass import Dice
@@ -43,7 +43,11 @@ class Event(object):
     # 初始化
     def init(plugin_event, Proc):       # plugin_models_tmp.main.Event.init(plugin_event = None, Proc = self) 
         bot_init(plugin_event, Proc)
-        Proc.log(2,'RainyDice机器人['+RainyDice.bot.data['name'] + ']已加载完毕')
+        logtxt = 'RainyDice机器人['+RainyDice.bot.data['name'] + ']已加载完毕，['
+        for i,v in RainyDice.platform_dict.items():
+            logtxt = logtxt+ i+']共加载群组'+str(len(RainyDice.group[v]['group_list']))+'个，用户'+str(len(RainyDice.user[v]['user_list']))+'个；['
+        logtxt = logtxt[:-2]
+        Proc.log(2,logtxt)
 
     def private_message(plugin_event, Proc):
         private_reply(plugin_event, Proc)
