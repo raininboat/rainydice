@@ -30,6 +30,7 @@
 
 class GlobalVal(object):
     def __init__(self,cocrank:dict):
+        self.GlobalVal['setcocExplain']=[None]*len(cocrank)
         for i,v in cocrank.items():
             self.GlobalVal['setcocExplain'][i]=v['text']
     def getHelpDoc(self,key='') : # 最大子串不会先不做了，现在只是自动把&关联项转换完毕
@@ -75,6 +76,8 @@ class GlobalVal(object):
         'stShowReply' : '[User_Name]的人物卡[[Card_ID]][[Card_Name]]中属性【[Skill_Name]】为：[Skill_Val]',
         'stChangeReply' : '已记录[User_Name]的属性变化:\n[Skill_Name]：[Skill_Val][Change_Expression] = [Skill_Val][Change_Result] = [Skill_Val_Result]',
         'stNewCardReply' : '已记录[User_Name]的人物卡S\n[[Card_ID]][[Card_Name]]',
+        'enReplyFail' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 失败！',
+        'enReplySuccess' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 成功！\n[Skill_Name]:[Old_Skill]+[En_Exp]=[Now_Skill]',
         'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]',
         'OnlyInGroup' : '该指令只能在群聊中使用！',
         'setcocReply' : '群聊房规属性已改为[setcoc]:\n[setcocExplain]'
@@ -82,7 +85,7 @@ class GlobalVal(object):
     }
     GlobalVal = {
         'rankName' : ["【未知情况】","大成功","极难成功","困难成功","成功","失败","大失败"],
-        'setcocExplain' :[None]*20                                                                          # 已废弃，请修改randcheck
+        'setcocExplain' : []     # 请修改randcheck进行自定义
 
     }
     HelpDoc = {

@@ -605,7 +605,7 @@ def RPNcal(cal):
     return a.pop()
 
 
-def calculate(string):
+def calculate(string:str):
     try:
         splitdata = split(string)
         # print(splitdata)

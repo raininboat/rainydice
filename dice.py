@@ -551,6 +551,60 @@ class rolldice(object):
         else :
             reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
             return -1 ,False,reply
-    def EN(self,plugin_event,Proc,RainyDice:Dice,message:str,user_id:int,platform:int,group_id = 0):
-        
-        pass
+    def EN(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
+        cons = Constant()
+        card = RainyDice.user.get_card(platform=platform,user_id=user_id)
+        reply = ''
+        name = card['name']
+        skill_val = 0
+        if '+' in message:
+            # .en xxx +1D6
+            tmplist = message.split('+',1)
+            skill_name = tmplist[0].strip()
+            skill_name =  cons.name_replace(skill_name=skill_name)
+            exp = tmplist[1].strip()
+            if exp == '':
+                exp = '1D10'
+            if skill_name in card['data']:
+                skill_val = card['data'][skill_name]
+            else:
+                skill_val = cons.get_default_val(skill_name=skill_name)
+        else:
+            # .en xxx (30)
+            match = re.match('(\D+)\s*(\d*)',message)
+            if match == None:
+                reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
+                return -1 ,False,reply
+            skill_name,skill_val_str = match.groups()
+            skill_name =  cons.name_replace(skill_name=skill_name.strip())
+            if skill_val_str == '':
+                skill_val = cons.get_default_val(skill_name=skill_name)
+            else:
+                skill_val = int(skill_val_str)
+            exp = '1d10'
+        roll = randint(1,100)
+        if roll > skill_val or roll > 95 :
+            # 'enReplySuccess' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 成功！\n[Skill_Name]:[Old_Skill]+[En_Exp]=[Now_Skill]',
+            reply = RainyDice.GlobalVal.GlobalMsg['enReplySuccess']
+            status = True
+        else:
+            # 'enReplyFail' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 失败！',
+            reply = RainyDice.GlobalVal.GlobalMsg['enReplyFail']
+            status = False
+        reply.replace('[User_Name]',name)
+        reply.replace('[Skill_Name]',skill_name)
+        reply.replace('[Roll]',str(roll))
+        reply.replace('[Old_Skill]',str(skill_val))
+        if status:
+            status,result,step = calculate(exp)
+            if not status:
+                reply = RainyDice.GlobalVal.GlobalMsg['InputErr']+step
+                return 1 ,False,reply
+            reply.replace('[En_Exp]',exp)
+            skill_val = skill_val + result
+            card['data'][skill_name]=skill_val
+            RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=name)
+            reply.replace('[Now_Skill]',str(skill_val))
+            return 1 ,False,reply
+        else:
+            return 2 ,False,reply
