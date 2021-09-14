@@ -578,33 +578,37 @@ class rolldice(object):
             skill_name,skill_val_str = match.groups()
             skill_name =  cons.name_replace(skill_name=skill_name.strip())
             if skill_val_str == '':
-                skill_val = cons.get_default_val(skill_name=skill_name)
+                if skill_name in card['data']:
+                    skill_val = card['data'][skill_name]
+                else:
+                    skill_val = cons.get_default_val(skill_name=skill_name)
             else:
                 skill_val = int(skill_val_str)
             exp = '1d10'
         roll = randint(1,100)
         if roll > skill_val or roll > 95 :
-            # 'enReplySuccess' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 成功！\n[Skill_Name]:[Old_Skill]+[En_Exp]=[Now_Skill]',
+            # 'enReplySuccess' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 成功！\n[Skill_Name]:[Old_Skill]+[En_Exp]=[Old_Skill]+[En_Step]=[Now_Skill]',
             reply = RainyDice.GlobalVal.GlobalMsg['enReplySuccess']
             status = True
         else:
             # 'enReplyFail' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 失败！',
             reply = RainyDice.GlobalVal.GlobalMsg['enReplyFail']
             status = False
-        reply.replace('[User_Name]',name)
-        reply.replace('[Skill_Name]',skill_name)
-        reply.replace('[Roll]',str(roll))
-        reply.replace('[Old_Skill]',str(skill_val))
+        reply = str.replace(reply,'[User_Name]',name)
+        reply = str.replace(reply,'[Skill_Name]',skill_name)
+        reply = str.replace(reply,'[Roll]',str(roll))
+        reply = str.replace(reply,'[Old_Skill]',str(skill_val))
         if status:
             status,result,step = calculate(exp)
             if not status:
                 reply = RainyDice.GlobalVal.GlobalMsg['InputErr']+step
                 return 1 ,False,reply
-            reply.replace('[En_Exp]',exp)
+            reply = str.replace(reply,'[En_Exp]',exp)
+            reply = str.replace(reply,'[En_Step]',step)
             skill_val = skill_val + result
             card['data'][skill_name]=skill_val
             RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=name)
-            reply.replace('[Now_Skill]',str(skill_val))
+            reply = str.replace(reply,'[Now_Skill]',str(skill_val))
             return 1 ,False,reply
         else:
             return 2 ,False,reply

@@ -76,8 +76,8 @@ class GlobalVal(object):
         'stShowReply' : '[User_Name]的人物卡[[Card_ID]][[Card_Name]]中属性【[Skill_Name]】为：[Skill_Val]',
         'stChangeReply' : '已记录[User_Name]的属性变化:\n[Skill_Name]：[Skill_Val][Change_Expression] = [Skill_Val][Change_Result] = [Skill_Val_Result]',
         'stNewCardReply' : '已记录[User_Name]的人物卡S\n[[Card_ID]][[Card_Name]]',
-        'enReplyFail' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 失败！',
-        'enReplySuccess' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 成功！\n[Skill_Name]:[Old_Skill]+[En_Exp]=[Now_Skill]',
+        'enReplyFail' : '[User_Name]进行 [Skill_Name] 幕间成长:\nD100 = [Roll] / [Old_Skill] 失败！',
+        'enReplySuccess' : '[User_Name]进行 [Skill_Name] 幕间成长:\nD100 = [Roll] / [Old_Skill] 成功！\n[Skill_Name]：[Old_Skill]+[En_Exp]=[Old_Skill]+[En_Step]=[Now_Skill]',
         'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]',
         'OnlyInGroup' : '该指令只能在群聊中使用！',
         'setcocReply' : '群聊房规属性已改为[setcoc]:\n[setcocExplain]'
