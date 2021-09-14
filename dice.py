@@ -153,9 +153,9 @@ class rolldice(object):
             if temp_re_obj != None:
                 span = temp_re_obj.span()
                 match = temp_re_obj.group()
-                skill_name = match
+                skill_name = match.strip()
                 if span[1] < len(message):
-                    message = str.lstrip(message[span[1]:])
+                    message = str.strip(message[span[1]:])
                     skill_val_str = re.match('(\d+)?',message).group()
             else:
                 reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
