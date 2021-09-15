@@ -29,6 +29,7 @@
 '''
 
 from rainydice import GlobalVal
+from rainydice import version
 # from rainydice.main import RainyDice
 #from data.rainydice import *
 import json
@@ -47,8 +48,7 @@ class Dice(object):
         self.bot = bot(sql_path=self.sql_path,log = log)
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
-        self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck)
-
+        self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
 
 class bot(object):
     def __init__(self,sql_path,log):
@@ -64,17 +64,19 @@ class bot(object):
         # print (temp)
         if temp == []:
             try:
-                pre_sql = '''INSERT INTO BOT_CONF ('bot_key','bot_var') VALUES (?,?),(?,?),(?,?),(?,?);'''
-                var = ('name','本机器人','qq_master',0,'JSON','{"qq_admin":[0],"tg_admin":[0]}','tg_master',0)
+                pre_sql = '''INSERT INTO BOT_CONF ('bot_key','bot_var') VALUES (?,?),(?,?),(?,?),(?,?),(?,?);'''
+                var = ('name','本机器人','qq_master',0,'JSON','{"qq_admin":[0],"tg_admin":[0]}','tg_master',0,'version',version)
                 SQL_conn.cursor.execute(pre_sql,var)
                 SQL_conn.connection.commit()
                 self.data = {
                     'name' : u'本机器人',
+                    'version' : version,
                     'qq_master' : 0,
                     'qq_admin' : [0],
                     'tg_master': 0,
                     'tg_admin' : [0]
                 }
+                self.version = self.__diceversion(version)
             except:
                 SQL_conn.connection.rollback()
                 raise Exception('SQL ERROR','创建bot基本信息数据表失败！')
@@ -85,8 +87,35 @@ class bot(object):
             adminJson = self.data['JSON']
             self.data['qq_admin'] = json.loads(adminJson)['qq_admin']
             self.data['tg_admin'] = json.loads(adminJson)['tg_admin']
+            if 'version' not in self.data:
+                self.data['version'] = '0.0.0-unknown'
+            self.version = self.__diceversion(self.data['version'])
         SQL_conn.cursor.close()
+        scriptversion = self.__diceversion(version)
+        # 如果版本号前两位不同，则返回错误
+        if self.version.major != scriptversion.major or self.version.minor != scriptversion.minor:
+            log(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+self.data['version'])
+            raise UserWarning('脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+self.data['version'])
         self.sql_path = sql_path
+    class __diceversion(object):
+        def __init__(self,version):
+            self.fullversion = version
+            versionlist = str.split(version,'-')
+            self.shortversion = versionlist[0]
+            if len(versionlist) >=2:
+                releaseversion = versionlist[1]
+                versionlist = str.split(releaseversion,'.')
+                self.releaselevel = versionlist[0]
+                self.releaseinfo = []
+                for i in range(len(versionlist)-1):
+                    self.releaseinfo.append(versionlist[i+1])
+            versionlist = str.split(self.shortversion,'.')
+            self.major = int(versionlist[0])
+            self.minor = int(versionlist[1])
+            self.micro = int(versionlist[2])
+
+    def __str__(self):
+        return self.fullversion   
 
     def set(self, key, value):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key'] admin等json数据除外
         self.data[key] = value  
@@ -157,8 +186,9 @@ class Group(dict):
         SQL_conn = SQL(sql_path)
         platform_number = [0,1]         # 所有platform的数字
         # 所有键名称
-        self.key = ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_isBotOn','Group_Trust')
+        self.key = ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_Trust')
         self.jsonconf = ['setcoc','admin']
+        self.statusconf = ['isBotOn','isPluginOn','isLogOn']
         # platform 为群组出自平台，qq 为 0，tg 为 1 
         pre_sql = '''CREATE TABLE IF NOT EXISTS GROUP_CONF(
     'Group_Platform'          integer              NOT NULL,
@@ -166,8 +196,7 @@ class Group(dict):
     'Group_JSON'              TEXT            default '{"admin":[0],"setcoc":0}',
     'Group_Name'              TEXT            default '群聊',
     'Group_Owner'             integer         default 0,
-    'Group_Status'       integer         default 0,
-    'Group_isBotOn'           integer         default 1,
+    'Group_Status'       integer         default 3,
     "Group_Trust"             integer         default 0,
     PRIMARY KEY('Group_Platform','Group_ID')
 );'''
@@ -188,84 +217,64 @@ class Group(dict):
                     self[group_temp_val[0]][group_temp_val[1]][self.key[i]] = group_temp_val[i]
                 s_json = self[group_temp_val[0]][group_temp_val[1]]['Group_JSON']
                 tmpjson = json.loads(s_json)
-                if type(tmpjson['setcoc']) == list:
-                    if len(tmpjson['setcoc'])!= 1:
-                        tmpjson['setcoc'] = 0
-                    else:
-                        tmpjson['setcoc'] = tmpjson['setcoc'][0]
                 dict.update(self[group_temp_val[0]][group_temp_val[1]],tmpjson)
+                b_status = self[group_temp_val[0]][group_temp_val[1]]['Group_Status']
+                status = self.__bintostatus(b_status)
+                dict.update(self[group_temp_val[0]][group_temp_val[1]],status)
                 # self[group_temp_val[0]][group_temp_val[1]] = json.loads(s_json)
         SQL_conn.cursor.close()
         self.sql_path = sql_path
+    # 将二进制存储的group_status转换为标准形式
+    def __bintostatus(self,b_status):
+        status = {}
+        for i in range(len(self.statusconf)):
+            thisbit = b_status>>i&1
+            if thisbit:
+                status[self.statusconf[i]]=True
+            else:
+                status[self.statusconf[i]]=False
+        return status
+    def __statustobin(self,groupdict):
+        status = 0
+        for i in range(len(self.statusconf)):
+            thisbit = 0
+            if groupdict[self.statusconf[i]]:
+                thisbit = 1<<i
+                status = status+thisbit
+        return status
     def set(self, key, value,platform,group_id):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key']
         self[platform][group_id][key] = value
         tempdict = {}
         for tempkey in self.jsonconf:
             tempdict[tempkey] = self[platform][group_id][tempkey]
         Group_JSON = json.dumps(tempdict)
+        groupdict = self[platform][group_id]
+        Group_Status = self.__statustobin(groupdict)
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
-        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_isBotOn','Group_Trust')
-        VALUES(?,?,?,?,?,?,?,?);'''
+        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_Trust')
+        VALUES(?,?,?,?,?,?,?);'''
         Group_Platform = self[platform][group_id]['Group_Platform']
         Group_Name = self[platform][group_id]['Group_Name']
         Group_ID = self[platform][group_id]['Group_ID']
         Group_Owner = self[platform][group_id]['Group_Owner']
-        Group_isBotOn = self[platform][group_id]['Group_isBotOn']
-        Group_Status = self[platform][group_id]['Group_Status']
+        # Group_Status = self[platform][group_id]['Group_Status']
         Group_Trust = self[platform][group_id]['Group_Trust']
         try:
-            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_JSON,Group_Name,Group_Owner,Group_Status,Group_isBotOn,Group_Trust))
+            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_JSON,Group_Name,Group_Owner,Group_Status,Group_Trust))
             SQL_conn.connection.commit()
             if SQL_conn.connection.total_changes == 0:
                 self.log(3,'未能更改数据库数据!')
                 # SQL_conn.write_sql(pre_sql,(value,key))
                 return False
             return True
-        except:
-            self.log(4,'数据库错误，即将回滚!')
+        except Exception as err:
+            self.log(4,'数据库错误，即将回滚!'+err.__str__())
             SQL_conn.connection.rollback()
             return False
-    def __set(self, key, value,platform,group_id):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key']
-        self[platform][group_id][key] = value
-        if key not in self.jsonconf:
-            sql_path = self.sql_path
-            SQL_conn = SQL(sql_path)
-            pre_sql = '''UPDATE GROUP_CONF SET ? = ? WHERE Group_Platform IS ? AND Group_ID IS ?;'''
-            cur = SQL_conn.connection.cursor()
-            try:
-                cur.execute(pre_sql,(key,value,platform,group_id))
-                SQL_conn.connection.commit()
-                cur.close()
-                if SQL_conn.connection.total_changes == 0:
-                    self.log(3,'未能更改数据库数据!')
-                # SQL_conn.write_sql(pre_sql,(value,key))
-            except:
-                self.log(4,'数据库错误，即将回滚!')
-                cur.close()
-                SQL_conn.connection.rollback()
-        else:
-            tempdict = {}
-            for tempkey in self.jsonconf:
-                tempdict[tempkey] = self[platform][group_id][tempkey]
-            strjson = json.dumps(tempdict)
-            sql_path = self.sql_path
-            SQL_conn = SQL(sql_path)
-            pre_sql = '''UPDATE GROUP_CONF SET ? = ? WHERE Group_Platform IS ? AND Group_ID IS ?;'''
-            cur = SQL_conn.connection.cursor()
-            try:
-                cur.execute(pre_sql,('Group_JSON',strjson,platform,group_id))
-                SQL_conn.connection.commit()
-                cur.close()
-                if SQL_conn.connection.total_changes == 0:
-                    self.log(3,'未能更改数据库数据!')
-                # SQL_conn.write_sql(pre_sql,(value,key))
-            except:
-                self.log(4,'数据库错误，即将回滚!')
-                cur.close()
-                SQL_conn.connection.rollback()
+
     # 添加新群组
-    def add_group(self,Group_Platform,Group_ID,admin = [0],setcoc = 0,Group_Name = '群聊',Group_Owner=0,Group_Status = 0,Group_isBotOn = 1,Group_Trust = 0):
+    def add_group(self,Group_Platform,Group_ID,admin = [0],setcoc = 0,Group_Name = '群聊',Group_Owner=0,Group_Status = 3,Group_Trust = 0,isBotOn = True,isPluginOn = True,isLogOn = False):
         if Group_ID not in self[Group_Platform]['group_list']:
             self[Group_Platform]['group_list'].append(Group_ID)
         self[Group_Platform][Group_ID] = {
@@ -273,11 +282,13 @@ class Group(dict):
             'Group_Name'    : Group_Name,
             'Group_ID'      : Group_ID,
             'Group_Owner'   : Group_Owner,
-            'Group_isBotOn' : Group_isBotOn,
             'Group_Status'  : Group_Status,
             'Group_Trust'   : Group_Trust,
             'admin'         : admin,
-            'setcoc'        : setcoc
+            'setcoc'        : setcoc,
+            'isBotOn'       : isBotOn,
+            'isPluginOn'    : isPluginOn,
+            'isLogOn'       : isLogOn,
         }
         tempdict = {}
         for tempkey in self.jsonconf:
@@ -285,11 +296,11 @@ class Group(dict):
         Group_JSON = json.dumps(tempdict)
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
-        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_isBotOn','Group_Trust')
-        VALUES(?,?,?,?,?,?,?,?);'''
+        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_Trust')
+        VALUES(?,?,?,?,?,?,?);'''
         
         try:
-            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_JSON,Group_Name,Group_Owner,Group_Status,Group_isBotOn,Group_Trust))
+            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_JSON,Group_Name,Group_Owner,Group_Status,Group_Trust))
             SQL_conn.connection.commit()
             if SQL_conn.connection.total_changes == 0:
                 self.log(3,'未能更改数据库数据!')

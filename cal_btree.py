@@ -244,7 +244,7 @@ def RPNchange(Input):
 # diceMax 取最大的数量(k)
 # diceMin 取最小的数量(q)
 def diceRoll(diceCount,diceSides,diceMax=None,diceMin=None):
-    print(diceCount,diceSides,diceMax,diceMin)
+    # print(diceCount,diceSides,diceMax,diceMin)
     MaxDice = 9999      # 最多面数、最多投掷个数
 
     if diceCount > MaxDice or diceSides > MaxDice :

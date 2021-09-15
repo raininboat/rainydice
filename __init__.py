@@ -26,8 +26,10 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
+version = '0.1.0-alpha.210916' 
 import rainydice.main
 import rainydice.dice
 import rainydice.GlobalVal
-#import rainydice.calculate
-import rainydice.diceClass
+# import rainydice.calculate
+# import rainydice.diceClass
+

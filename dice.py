@@ -295,7 +295,7 @@ class rolldice(object):
         reply = str.replace(reply,'[San_Lose_Result]',str(sanlose))
         reply = str.replace(reply,'[nowSan]',str(nowSan))
         return 1 ,False, reply
-    def ST(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
+    def ST(self,plugin_event,Proc,RainyDice:Dice,message:str,user_id:int,platform:int,group_id = 0):
         st = []
         card = RainyDice.user.get_card(platform=platform,user_id=user_id)
         reply = ''
@@ -364,6 +364,7 @@ class rolldice(object):
             message = str.strip(message[4:])
             reply = RainyDice.GlobalVal.GlobalMsg['stNameReply']
             user_name = RainyDice.user[platform][user_id]['U_Name']
+            RainyDice.user.set('U_Name',message,platform=platform,user_id=user_id)
             reply = str.replace(reply,'[User_Name]',user_name)
             reply = str.replace(reply,'[Card_ID]',str(card['id']))
             reply = str.replace(reply,'[Card_Name]',card['name'])
@@ -373,7 +374,7 @@ class rolldice(object):
             # 'stNameReply' : '已将[User_Name]的人物卡[[Card_ID]][[Card_Name]]名称改为：[New_Name]',
             return 1 ,False,reply
         elif message.startswith('clr'):
-            RainyDice.user.del_card(platform=platform,user_id=user_id,)
+            RainyDice.user.del_card(platform=platform,user_id=user_id)
             reply = RainyDice.GlobalVal.GlobalMsg['stClrReply']
             # 'stClrReply' : '已将[Card_Name]的技能全部清除',
             reply = str.replace(reply,'[Card_Name]',card['name'])

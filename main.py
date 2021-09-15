@@ -36,7 +36,6 @@ import sys
 from rainydice.dice import rolldice
 from rainydice.diceClass import Dice
 from rainydice.cocRankCheckDefault import create_cocRankCheck
-#from .data.rainydice.conf import aaa
 import json
 global RainyDice
 class Event(object):
@@ -161,13 +160,13 @@ def group_reply(plugin_event, Proc):
         plugin_event.send('private',User_ID,RainyDice.GlobalVal.GlobalMsg['BotMsg'])
         return None
     elif message == '.bot on' or message == '。bot on' or message == '/bot on':    # .bot on 开启骰娘
-        RainyDice.group.set('Group_isBotOn',1,Group_Platform,Group_ID)
+        RainyDice.group.set('isBotOn',1,Group_Platform,Group_ID)
         reply = RainyDice.GlobalVal.GlobalMsg['BotOnReply']
         reply = str.replace(reply,'[bot_name]',RainyDice.bot.data['name'])
         plugin_event.reply(reply)
         return None
     elif message == '.bot off' or message == '。bot off' or message == '/bot off':    # .bot off 关闭骰娘
-        RainyDice.group.set('Group_isBotOn',0,Group_Platform,Group_ID)
+        RainyDice.group.set('isBotOn',0,Group_Platform,Group_ID)
         reply = RainyDice.GlobalVal.GlobalMsg['BotOffReply']
         reply = str.replace(reply,'[bot_name]',RainyDice.bot.data['name'])
         plugin_event.reply(reply)
@@ -175,7 +174,7 @@ def group_reply(plugin_event, Proc):
     # 记录log模块先不写
     # 【预留位置】
     # 如果群聊关闭且未at bot，则不回应
-    if RainyDice.group[Group_Platform][Group_ID]['Group_isBotOn'] == 0 and isAtBot == False:    # 如果没开启且没at bot 则不处理消息
+    if RainyDice.group[Group_Platform][Group_ID]['isBotOn'] == 0 and isAtBot == False:    # 如果没开启且没at bot 则不处理消息
         return None
     if message == '' :
         return None
@@ -255,7 +254,7 @@ def group_reply(plugin_event, Proc):
             message = 'r1d100'
         message=message[1:]
         status,isMultiReply ,reply = rd.RD(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-        plugin_event.reply(reply)
+        send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('nn'):
         if message == 'nn':
@@ -310,11 +309,14 @@ def send_reply(plugin_event,proc,status,isMultiReply ,reply):
     if isMultiReply:
         for replypack in reply:
             if replypack[0] == 'reply':
+                proc.log(0,'[RainyDice]reply:'+replypack[1])
                 plugin_event.reply(replypack[1])
             elif replypack[0] == 'send':
                 target_type = replypack[1]
                 target_id = replypack[2]
                 reply_msg = replypack[3]
+                proc.log(0,'[RainyDice]send['+target_type+']('+str(target_id)+'):'+replypack[1])
                 plugin_event.send(target_type,target_id,reply_msg)
     else:
+        proc.log(0,'[RainyDice]reply:'+reply)
         plugin_event.reply(reply)
