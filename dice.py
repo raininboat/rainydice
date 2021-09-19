@@ -183,41 +183,52 @@ class rolldice(object):
             reply = RainyDice.GlobalVal.GlobalMsg['raReply']    # '[User_Name]进行[Skill_Name]检定:\nD100 = [Result] / [Skill_Val] [Rank]',
             rollResult = randint(1,100)
             successLevel = self._RaSuccess(rollResult,skill_val,setcoc)
-            reply = str.replace(reply,'[User_Name]',user_name)
-            reply = str.replace(reply,'[Skill_Name]',skill_name)
-            reply = str.replace(reply,'[Result]',str(rollResult))
-            reply = str.replace(reply,'[Skill_Val]',str(skill_val))
-            reply = str.replace(reply,'[Rank]',rankName[successLevel])
+            replace = {
+                'User_Name' : user_name,
+                'Skill_Name' : skill_name,
+                'Result' : str(rollResult),
+                'Skill_Val' : str(skill_val),
+                'Rank' : rankName[successLevel],
+            }
+            reply = str.format_map(reply,replace)
+
         elif sign < 0 :
             rollResult,rollStep,rollFirst = self._rd(sign)
             successLevel = self._RaSuccess(rollResult,skill_val,setcoc)
             ROLL_List = self.__change_rollstep_to_str(rollstep=rollStep)
             reply = RainyDice.GlobalVal.GlobalMsg['rbpReply']    #  '[User_Name]进行[Skill_Name]检定:\nD100 = [Result] [[Sign]骰:[ROLL_List]] / [Skill_Val] [Rank]',
-            reply = str.replace(reply,'[User_Name]',user_name)
-            reply = str.replace(reply,'[Skill_Name]',skill_name)
-            reply = str.replace(reply,'[rdResult]',str(rollFirst))
-            reply = str.replace(reply,'[Result]',str(rollResult))
-            reply = str.replace(reply,'[Sign]','惩罚')
-            reply = str.replace(reply,'[ROLL_List]',ROLL_List)
-            reply = str.replace(reply,'[Skill_Val]',str(skill_val))
-            reply = str.replace(reply,'[Rank]',rankName[successLevel])
+            replace = {
+                'User_Name' : user_name,
+                'Skill_Name' : skill_name,
+                'rdResult' : str(rollFirst),
+                'Result' : str(rollResult),
+                'Sign' : '惩罚',
+                'ROLL_List' : ROLL_List,
+                'Skill_Val' : str(skill_val),
+                'Rank' : rankName[successLevel],
+            }
+            reply = str.format_map(reply,replace)
+
         elif sign > 0 :
             rollResult,rollStep,rollFirst = self._rd(sign)
             successLevel = self._RaSuccess(rollResult,skill_val,setcoc)
             ROLL_List = self.__change_rollstep_to_str(rollstep=rollStep)
             reply = RainyDice.GlobalVal.GlobalMsg['rbpReply']    #  '[User_Name]进行[Skill_Name]检定:\nD100 = [Result] [[Sign]骰:[ROLL_List]] / [Skill_Val] [Rank]',
-            reply = str.replace(reply,'[User_Name]',user_name)
-            reply = str.replace(reply,'[Skill_Name]',skill_name)
-            reply = str.replace(reply,'[rdResult]',str(rollFirst))
-            reply = str.replace(reply,'[Result]',str(rollResult))
-            reply = str.replace(reply,'[Sign]','奖励')
-            reply = str.replace(reply,'[ROLL_List]',ROLL_List)
-            reply = str.replace(reply,'[Skill_Val]',str(skill_val))
-            reply = str.replace(reply,'[Rank]',rankName[successLevel])
+            replace = {
+                'User_Name' : user_name,
+                'Skill_Name' : skill_name,
+                'rdResult' : str(rollFirst),
+                'Result' : str(rollResult),
+                'Sign' : '奖励',
+                'ROLL_List' : ROLL_List,
+                'Skill_Val' : str(skill_val),
+                'Rank' : rankName[successLevel],
+            }
+            reply = str.format_map(reply,replace)
             
         if isRH:
             group_reply = RainyDice.GlobalVal.GlobalMsg['rhGroupReply']
-            group_reply = str.replace(group_reply,'[User_Name]',user_name)
+            group_reply = str.format(group_reply,User_Name=user_name)#User_Name=user_name)
             # plugin_event.reply(group_reply)
             reply = '在['+RainyDice.group[platform][group_id]['Group_Name']+']('+str(group_id)+')中，'+reply
             # plugin_event.send('private',user_id,reply)
@@ -238,13 +249,19 @@ class rolldice(object):
             return 1 , False , step
         user_name = RainyDice.user[platform][user_id]['U_Name']
         reply = RainyDice.GlobalVal.GlobalMsg['rdReply']            # '[User_Name]进行投掷:\n[DiceExp]=[DiceStep]=[Result]',
-        reply = str.replace(reply,'[User_Name]',user_name)
-        reply = str.replace(reply,'[DiceExp]',dice_exp)
+        replace = {
+            'User_Name' : user_name,
+            'DiceExp' : dice_exp
+        }
+        # 超过最长的回复大小
         if len(step)<=maxStepLen:
-            reply = str.replace(reply,'[DiceStep]',step)
+            replace['DiceStep']=step+'='
+            #reply = str.replace(reply,'[DiceStep]',step)
         else:
-            reply = str.replace(reply,'[DiceStep]=','')
-        reply = str.replace(reply,'[Result]',str(result))
+            replace['DiceStep']=''
+            #reply = str.replace(reply,'[DiceStep]=','')
+        replace['Result']=str(result)
+        reply = str.format_map(reply,replace)
         # plugin_event.reply(reply)
         if reason != None and reason != '':
             reply = '由于'+reason +','+reply
@@ -269,31 +286,35 @@ class rolldice(object):
         rankName = RainyDice.GlobalVal.GlobalVal['rankName']
         user_name = RainyDice.user[platform][user_id]['U_Name']#card['name']
         rollResult = randint(1,100)
+        rank = self._RaSuccess(rollResult,san,setcoc)
         sanlose = 0
         reply = RainyDice.GlobalVal.GlobalMsg['scReply']
+        replace = {
+            'User_Name' : user_name,
+            'Roll_Result' : str(rollResult),
+            'Old_San' : str(san),
+            'Rank' : rankName[rank],
+        }
         if rollResult <= san:
             status,sanlose,step = calculate(scExp[0])
             if status ==False:
                 return -1 ,False, step
-            reply = str.replace(reply,'[San_Lose_Expression]',scExp[0])
+            replace['San_Lose_Expression'] = scExp[0]
+            # reply = str.replace(reply,'[San_Lose_Expression]',scExp[0])
         else:
             status,sanlose,step = calculate(scExp[0])
             if status ==False:
                 return -1 ,False, step
-            reply = str.replace(reply,'[San_Lose_Expression]',scExp[1])
-        rank = self._RaSuccess(rollResult,san,setcoc)
+            replace['San_Lose_Expression'] = scExp[1]        
         nowSan = san - sanlose
         if nowSan <= 0 :
             nowSan = 0
         card['data']['理智'] = nowSan
         RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=card['name'])
         # 'scReply' : '[User_Name]进行理智检定:\nD100 = [Roll_Result] / [Old_San] [Rank]\n理智损失: [San_Lose_Expression] = [San_Lose_Result] \n当前理智：[nowSan]',
-        reply = str.replace(reply,'[User_Name]',user_name)
-        reply = str.replace(reply,'[Roll_Result]',str(rollResult))
-        reply = str.replace(reply,'[Old_San]',str(san))  
-        reply = str.replace(reply,'[Rank]',rankName[rank])
-        reply = str.replace(reply,'[San_Lose_Result]',str(sanlose))
-        reply = str.replace(reply,'[nowSan]',str(nowSan))
+        replace['San_Lose_Result'] = str(sanlose)
+        replace['nowSan'] = str(nowSan)
+        reply = str.format_map(reply,replace)
         return 1 ,False, reply
     def ST(self,plugin_event,Proc,RainyDice:Dice,message:str,user_id:int,platform:int,group_id = 0):
         st = []
@@ -331,9 +352,12 @@ class rolldice(object):
             status,card = self.__STCard(card_id=card_id,card_name=card_name,text = st[1],reply=reply)
             if status:
                 user_name = RainyDice.user[platform][user_id]['U_Name']
-                reply = str.replace(reply,'[User_Name]',user_name)
-                reply = str.replace(reply,'[Card_ID]',str(card_id))
-                reply = str.replace(reply,'[Card_Name]',card_name)
+                replace = {
+                    'User_Name' : user_name,
+                    'Card_ID' : str(card_id),
+                    'Card_Name' : card_name
+                }
+                reply = str.format_map(reply,replace)
                 RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=card['name'],en_card = card_id)
                 return 1, False,reply
             else:
@@ -354,8 +378,11 @@ class rolldice(object):
                 RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=card['name'])
             reply = RainyDice.GlobalVal.GlobalMsg['stDelReply']
             # 'stDelReply' : '已将[User_Name]的技能【[Skill_Name]】删除',
-            reply = str.replace(reply,'[Card_Name]',card['name'])
-            reply = str.replace(reply,'[Skill_Name]',skill_name)
+            replace = {
+                'Card_Name' : card['name'],
+                'Skill_Name' : skill_name
+            }
+            reply = str.format_map(replace,replace)
             return 1, False,reply
         elif message.startswith('name'):        # 修改人物卡名称
             if message == 'name':
@@ -365,10 +392,13 @@ class rolldice(object):
             reply = RainyDice.GlobalVal.GlobalMsg['stNameReply']
             user_name = RainyDice.user[platform][user_id]['U_Name']
             RainyDice.user.set('U_Name',message,platform=platform,user_id=user_id)
-            reply = str.replace(reply,'[User_Name]',user_name)
-            reply = str.replace(reply,'[Card_ID]',str(card['id']))
-            reply = str.replace(reply,'[Card_Name]',card['name'])
-            reply = str.replace(reply,'[New_Name]',message)
+            replace = {
+                    'User_Name' : user_name,
+                    'Card_ID' : str(card['id']),
+                    'Card_Name' : card['name'],
+                    'New_Name' : message
+                }
+            reply = str.format_map(reply,replace)
             card['name'] = message
             RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=card['name'])
             # 'stNameReply' : '已将[User_Name]的人物卡[[Card_ID]][[Card_Name]]名称改为：[New_Name]',
@@ -377,7 +407,8 @@ class rolldice(object):
             RainyDice.user.del_card(platform=platform,user_id=user_id)
             reply = RainyDice.GlobalVal.GlobalMsg['stClrReply']
             # 'stClrReply' : '已将[Card_Name]的技能全部清除',
-            reply = str.replace(reply,'[Card_Name]',card['name'])
+            reply = str.format(reply,Card_Name=card['name'])
+            # reply = str.replace(reply,'[Card_Name]',card['name'])
             return 1, False,reply
         elif message.startswith('show'):
             user_name = RainyDice.user[platform][user_id]['U_Name']
@@ -393,9 +424,12 @@ class rolldice(object):
                     text = text[:-1]
                  # 'stShowAllReply' : '[User_Name]的人物卡[[Card_ID]][[Card_Name]]属性为：\n',
                 reply = RainyDice.GlobalVal.GlobalMsg['stShowAllReply']
-                reply = str.replace(reply,'[User_Name]',user_name)
-                reply = str.replace(reply,'[Card_ID]',str(card['id']))
-                reply = str.replace(reply,'[Card_Name]',card['name'])
+                replace = {
+                    'User_Name' : user_name,
+                    'Card_ID' : str(card['id']),
+                    'Card_Name' : card['name'],
+                }
+                reply = str.format_map(reply,replace)
                 reply = reply +  text
                 return 1, False,reply
             else:
@@ -407,11 +441,15 @@ class rolldice(object):
                 else:
                     skill_val = cons.get_default_val(skill_name)
                 reply = RainyDice.GlobalVal.GlobalMsg['stShowReply']
-                reply = str.replace(reply,'[User_Name]',user_name)
-                reply = str.replace(reply,'[Card_ID]',str(card['id']))
-                reply = str.replace(reply,'[Card_Name]',card['name'])
-                reply = str.replace(reply,'[Skill_Name]',skill_name)
-                reply = str.replace(reply,'[Skill_Val]',str(skill_val))
+                replace = {
+                    'User_Name' : user_name,
+                    'Card_ID' : str(card['id']),
+                    'Card_Name' : card['name'],
+                    'Skill_Name' : skill_name,
+                    'Skill_Val' : str(skill_val),
+                }
+                reply = str.format_map(reply,replace)
+
                 return 1, False,reply
                 # 'stShowReply' : '[User_Name]的人物卡[[Card_ID]][[Card_Name]]中属性【[Skill_Name]】为：[Skill_Val]',
         else:
@@ -480,12 +518,15 @@ class rolldice(object):
         if skill_changed <= 0:      # 技能值非负
             skill_changed = 0
         card['data'][skill_name] = skill_changed
-        reply = str.replace(reply,'[User_Name]',card['name'])
-        reply = str.replace(reply,'[Skill_Name]',skill_name)
-        reply = str.replace(reply,'[Skill_Val]',str(skill_val))  
-        reply = str.replace(reply,'[Change_Expression]',changeExp)
-        reply = str.replace(reply,'[Change_Result]',change_result_str)
-        reply = str.replace(reply,'[Skill_Val_Result]',str(skill_changed))            
+        replace = {
+            'User_Name' : card['name'],
+            'Skill_Name' : skill_name,
+            'Skill_Val' : str(skill_val),
+            'Change_Expression' : changeExp,
+            'Change_Result' : change_result_str,
+            'Skill_Val_Result' : str(skill_changed)
+        }
+        reply = str.format_map(reply,replace)            
         return True , card , reply
 
     def LI(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
@@ -493,20 +534,20 @@ class rolldice(object):
         user_name = RainyDice.user[platform][user_id]['U_Name']
         text = user_name+'疯狂发作-总结症状：\n1D10='+str(status+1)+'\n'+Constant.LongInsanity[status]
         temp = randint(0,9)
-        addTxt = '1D10=' + str(temp+1)
-        text = text.replace('[var_a]',addTxt)
+        var_a = '1D10=' + str(temp+1)
         if  status == 8 :
             temp = randint(0,99)
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strFear[temp]
-            text = text.replace("[var_c]",addTxt)
+            var_b = "1D100="+str(temp+1)
+            var_c = Constant.strFear[temp]
+            text = str.format(text,var_a,var_b,var_c)
         elif status == 9:
             temp = randint(0,99)
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strPanic[temp]
-            text = text.replace("[var_c]",addTxt)           
+            var_b = "1D100="+str(temp+1)
+            #text = text.replace("[var_b]",addTxt)
+            var_c = Constant.strPanic[temp]
+            text = str.format(text,var_a,var_b,var_c)
+        else:
+            text = str.format(text,var_a)
         return 1,False , text
 
     def TI(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
@@ -514,20 +555,19 @@ class rolldice(object):
         user_name = RainyDice.user[platform][user_id]['U_Name']
         text = user_name+'疯狂发作-临时症状：\n1D10='+str(status+1)+'\n'+Constant.TempInsanity[status]
         temp = randint(0,9)
-        addTxt = '1D10=' + str(temp+1)
-        text = text.replace("[var_a]",addTxt)
+        var_a = '1D10=' + str(temp+1)
         if  status == 8 :
             temp = randint(0,99)
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strFear[temp]
-            text = text.replace("[var_c]",addTxt)
+            var_b = "1D100="+str(temp+1)
+            var_c = Constant.strFear[temp]
+            text = str.format(text,var_a,var_b,var_c)
         elif status == 9:
             temp = randint(0,99)
-            addTxt = "1D100="+str(temp+1)
-            text = text.replace("[var_b]",addTxt)
-            addTxt = Constant.strPanic[temp]
-            text = text.replace("[var_c]",addTxt)
+            var_b = "1D100="+str(temp+1)
+            var_c = Constant.strPanic[temp]
+            text = str.format(text,var_a,var_b,var_c)
+        else:
+            text = str.format(text,var_a)
         return 1,False,text
     def SETCOC(self,plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID = 0):
         if message in self.intdict:
@@ -543,8 +583,11 @@ class rolldice(object):
                 reply = RainyDice.GlobalVal.GlobalMsg['setcocReply']
                 #'setcocReply' : '群聊房规属性已改为[setcoc]:\n[setcocExplain]'
                 setcocExplain = RainyDice.GlobalVal.GlobalVal['setcocExplain'][setcoc]
-                reply = str.replace(reply,'[setcoc]',str(setcoc))
-                reply = str.replace(reply,'[setcocExplain]',setcocExplain)
+                replace = {
+                    'setcoc' : str(setcoc),
+                    'setcocExplain' : setcocExplain
+                }
+                reply = str.format_map(reply,replace)
                 return 1 ,False,reply
             else :
                 reply = RainyDice.GlobalVal.GlobalMsg['OnlyInGroup']
@@ -595,21 +638,31 @@ class rolldice(object):
             # 'enReplyFail' : '[User_Name]进行[Skill_Name]增长检定:\nD100 = [Roll]/[Old_Skill] 失败！',
             reply = RainyDice.GlobalVal.GlobalMsg['enReplyFail']
             status = False
-        reply = str.replace(reply,'[User_Name]',name)
-        reply = str.replace(reply,'[Skill_Name]',skill_name)
-        reply = str.replace(reply,'[Roll]',str(roll))
-        reply = str.replace(reply,'[Old_Skill]',str(skill_val))
         if status:
             status,result,step = calculate(exp)
             if not status:
                 reply = RainyDice.GlobalVal.GlobalMsg['InputErr']+step
                 return 1 ,False,reply
-            reply = str.replace(reply,'[En_Exp]',exp)
-            reply = str.replace(reply,'[En_Step]',step)
-            skill_val = skill_val + result
-            card['data'][skill_name]=skill_val
+            skill_val_new = skill_val + result
+            card['data'][skill_name]=skill_val_new
             RainyDice.user.set_card(platform=platform,user_id=user_id,card_dict=card['data'],card_name=name)
-            reply = str.replace(reply,'[Now_Skill]',str(skill_val))
+            replace = {
+                'User_Name' : name,
+                'Skill_Name' : skill_name,
+                'Roll' : str(roll),
+                'Old_Skill' : str(skill_val),
+                'En_Exp' : exp,
+                'En_Step' : step,
+                'Now_Skill' : str(skill_val_new)
+            }
+            reply = str.format_map(reply,replace)
             return 1 ,False,reply
         else:
+            replace = {
+                'User_Name' : name,
+                'Skill_Name' : skill_name,
+                'Roll' : str(roll),
+                'Old_Skill' : str(skill_val)
+            }
+            reply = str.format_map(reply,replace)
             return 2 ,False,reply
