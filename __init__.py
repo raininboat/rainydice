@@ -26,7 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.1.0-alpha.210916' 
+version = '0.2.0-alpha.210919' 
+author = 'RainyZhou'
 import rainydice.main
 import rainydice.dice
 import rainydice.GlobalVal

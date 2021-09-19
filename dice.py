@@ -171,9 +171,9 @@ class rolldice(object):
         else:
             skill_val = int(skill_val_str)
         if group_id != 0:
-            setcoc = RainyDice.group[platform][group_id]['setcoc']
+            Group_Setcoc = RainyDice.group[platform][group_id]['Group_Setcoc']
         else :
-            setcoc = 0
+            Group_Setcoc = 0
         rankName = RainyDice.GlobalVal.GlobalVal['rankName']
         user_name = RainyDice.user[platform][user_id]['U_Name']#card['name']
         # print('sign : '+str(sign))
@@ -182,7 +182,7 @@ class rolldice(object):
         if sign == 0 :
             reply = RainyDice.GlobalVal.GlobalMsg['raReply']    # '[User_Name]进行[Skill_Name]检定:\nD100 = [Result] / [Skill_Val] [Rank]',
             rollResult = randint(1,100)
-            successLevel = self._RaSuccess(rollResult,skill_val,setcoc)
+            successLevel = self._RaSuccess(rollResult,skill_val,Group_Setcoc)
             replace = {
                 'User_Name' : user_name,
                 'Skill_Name' : skill_name,
@@ -194,7 +194,7 @@ class rolldice(object):
 
         elif sign < 0 :
             rollResult,rollStep,rollFirst = self._rd(sign)
-            successLevel = self._RaSuccess(rollResult,skill_val,setcoc)
+            successLevel = self._RaSuccess(rollResult,skill_val,Group_Setcoc)
             ROLL_List = self.__change_rollstep_to_str(rollstep=rollStep)
             reply = RainyDice.GlobalVal.GlobalMsg['rbpReply']    #  '[User_Name]进行[Skill_Name]检定:\nD100 = [Result] [[Sign]骰:[ROLL_List]] / [Skill_Val] [Rank]',
             replace = {
@@ -211,7 +211,7 @@ class rolldice(object):
 
         elif sign > 0 :
             rollResult,rollStep,rollFirst = self._rd(sign)
-            successLevel = self._RaSuccess(rollResult,skill_val,setcoc)
+            successLevel = self._RaSuccess(rollResult,skill_val,Group_Setcoc)
             ROLL_List = self.__change_rollstep_to_str(rollstep=rollStep)
             reply = RainyDice.GlobalVal.GlobalMsg['rbpReply']    #  '[User_Name]进行[Skill_Name]检定:\nD100 = [Result] [[Sign]骰:[ROLL_List]] / [Skill_Val] [Rank]',
             replace = {
@@ -280,13 +280,13 @@ class rolldice(object):
         else:
             return -1 ,False,RainyDice.GlobalVal.GlobalMsg['scSanNull']
         if group_id != 0:
-            setcoc = RainyDice.group[platform][group_id]['setcoc']
+            Group_Setcoc = RainyDice.group[platform][group_id]['Group_Setcoc']
         else :
-            setcoc = 0
+            Group_Setcoc = 0
         rankName = RainyDice.GlobalVal.GlobalVal['rankName']
         user_name = RainyDice.user[platform][user_id]['U_Name']#card['name']
         rollResult = randint(1,100)
-        rank = self._RaSuccess(rollResult,san,setcoc)
+        rank = self._RaSuccess(rollResult,san,Group_Setcoc)
         sanlose = 0
         reply = RainyDice.GlobalVal.GlobalMsg['scReply']
         replace = {
@@ -349,7 +349,7 @@ class rolldice(object):
             card_name = st[0]
             card_id = RainyDice.user.new_card_id(platform=platform,user_id=user_id,card_name=card_name)
             # 'stNewCardReply' : '已记录[User_Name]的人物卡:\n[[Card_ID]][[Card_Name]]',
-            status,card = self.__STCard(card_id=card_id,card_name=card_name,text = st[1],reply=reply)
+            status,card = self.__STCard(card_id=card_id,card_name=card_name,text = st[1])
             if status:
                 user_name = RainyDice.user[platform][user_id]['U_Name']
                 replace = {
@@ -571,20 +571,20 @@ class rolldice(object):
         return 1,False,text
     def SETCOC(self,plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID = 0):
         if message in self.intdict:
-            setcoc = self.intdict[message]
-            # if setcoc > 5:
+            Group_Setcoc = self.intdict[message]
+            # if Group_Setcoc > 5:
             #     reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
             #     return -1 ,False,reply
             if Group_ID != 0:
-                status = RainyDice.group.set('setcoc',setcoc,Group_Platform,Group_ID)
+                status = RainyDice.group.set('Group_Setcoc',Group_Setcoc,Group_Platform,Group_ID)
                 if status == False:
                     reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
                     return -1 ,False,reply
                 reply = RainyDice.GlobalVal.GlobalMsg['setcocReply']
-                #'setcocReply' : '群聊房规属性已改为[setcoc]:\n[setcocExplain]'
-                setcocExplain = RainyDice.GlobalVal.GlobalVal['setcocExplain'][setcoc]
+                #'Group_SetcocReply' : '群聊房规属性已改为[Group_Setcoc]:\n[Group_SetcocExplain]'
+                setcocExplain = RainyDice.GlobalVal.GlobalVal['setcocExplain'][Group_Setcoc]
                 replace = {
-                    'setcoc' : str(setcoc),
+                    'setcoc' : str(Group_Setcoc),
                     'setcocExplain' : setcocExplain
                 }
                 reply = str.format_map(reply,replace)

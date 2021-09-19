@@ -29,11 +29,12 @@
 '''
 
 from rainydice import GlobalVal
-from rainydice import version
+from rainydice import version,author
 # from rainydice.main import RainyDice
 #from data.rainydice import *
 import json
 import sqlite3
+import time
 class Dice(object):
     def __init__(self,Data_Path,log,cocRankCheck,ignore={}):
         self.platform_dict = {
@@ -45,54 +46,36 @@ class Dice(object):
         self.log = log
         self.ignore = ignore
         self.cocRankCheck = cocRankCheck
-        self.bot = bot(sql_path=self.sql_path,log = log)
+        self.bot = bot(Data_Path,log = log)
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
-
-class bot(object):
+        self.basic = basic_info(sql_path=self.sql_path,log = log)
+class basic_info(object):
     def __init__(self,sql_path,log):
-        self.log = log
         SQL_conn = SQL(sql_path)
-        # 尝试新建bot_conf表
-        pre_sql = '''CREATE TABLE IF NOT EXISTS BOT_CONF( 'bot_key' Text primary key NOT NULL UNIQUE ,'bot_var' text);'''
+        pre_sql = '''CREATE TABLE IF NOT EXISTS basic_info( 'basic_key' Text primary key NOT NULL UNIQUE ,'basic_val' text);'''
         SQL_conn.cursor.execute(pre_sql)
-        pre_sql = '''SELECT * FROM BOT_CONF;'''
+        pre_sql = '''SELECT * FROM basic_info;'''
         SQL_conn.cursor.execute(pre_sql)
         temp = SQL_conn.cursor.fetchall()
-        self.jsonconf = ['qq_admin','tg_admin']
-        # print (temp)
         if temp == []:
-            try:
-                pre_sql = '''INSERT INTO BOT_CONF ('bot_key','bot_var') VALUES (?,?),(?,?),(?,?),(?,?),(?,?);'''
-                var = ('name','本机器人','qq_master',0,'JSON','{"qq_admin":[0],"tg_admin":[0]}','tg_master',0,'version',version)
-                SQL_conn.cursor.execute(pre_sql,var)
-                SQL_conn.connection.commit()
-                self.data = {
-                    'name' : u'本机器人',
-                    'version' : version,
-                    'qq_master' : 0,
-                    'qq_admin' : [0],
-                    'tg_master': 0,
-                    'tg_admin' : [0]
-                }
-                self.version = self.__diceversion(version)
-            except:
-                SQL_conn.connection.rollback()
-                raise Exception('SQL ERROR','创建bot基本信息数据表失败！')
+            pre_sql = '''INSERT INTO basic_info ('basic_key','basic_val') VALUES (?,?),(?,?),(?,?);'''
+            val = ('version',version,'author',author,'create_time',time.time())
+            SQL_conn.cursor.execute(pre_sql,val)
+            SQL_conn.connection.commit()
+            self.version = self.__diceversion(version)
         else:
-            self.data = {}
-            for x in temp:
-                self.data[x[0]] = x[1]
-            adminJson = self.data['JSON']
-            self.data['qq_admin'] = json.loads(adminJson)['qq_admin']
-            self.data['tg_admin'] = json.loads(adminJson)['tg_admin']
-            if 'version' not in self.data:
-                self.data['version'] = '0.0.0-unknown'
-            self.version = self.__diceversion(self.data['version'])
-        SQL_conn.cursor.close()
+            data = {}
+            for i in temp:
+                data[i[0]] = i[1]
+            if 'version' not in data:
+                data['version'] = '0.0.0-unknown'
+            self.version = self.__diceversion(data['version'])
+            self.author = data['author']
+            self.create_time = data['create_time']
         scriptversion = self.__diceversion(version)
-        # 如果版本号前两位不同，则返回错误
+        # 如果版本号前两位不同，则返回错误      # 本次版本位三位必须相同
         if self.version.major != scriptversion.major or self.version.minor != scriptversion.minor:
             log(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+self.data['version'])
             raise UserWarning('脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+self.data['version'])
@@ -113,64 +96,53 @@ class bot(object):
             self.major = int(versionlist[0])
             self.minor = int(versionlist[1])
             self.micro = int(versionlist[2])
-
-    def __str__(self):
-        return self.fullversion   
+class bot(object):
+    def __init__(self,Data_Path,log):
+        self.log = log
+        self.Data_Path = Data_Path
+        try:
+            f = open(Data_Path+'/conf/bot.json', 'r', encoding = 'utf-8')
+            bot_conf = json.loads(f.read())
+            f.close()
+            log(0,'已读取RainyDice配置文件 bot.json') 
+        except:
+            log(2,'未找到RainyDice配置文件 bot.json ，即将新建...') 
+            bot_conf = self.create_bot_conf(Data_Path,log)
+        finally:
+            if bot_conf == None:
+                log(3,'RainyDice配置文件 bot.json 错误！即将重置...') 
+                bot_conf = self.create_bot_conf(Data_Path,log)
+        self.data = bot_conf
+    
+    def create_bot_conf(self,Data_Path= '',log=None):
+        f_conf = open(Data_Path+'/conf/bot.json',"w",encoding="utf-8")
+        default_conf = '''{
+    "name" : "本机器人",
+    "qq_master" : 0,
+    "qq_admin" : [0],
+    "tg_master": 0,
+    "tg_admin" : [0]
+}'''
+        f_conf.write(default_conf)
+        f_conf.close()
+        conf = {
+        "name" : "本机器人",
+        "qq_master" : 0,
+        "qq_admin" : [0],
+        "tg_master": 0,
+        "tg_admin" : [0]
+    }
+        return conf
 
     def set(self, key, value):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key'] admin等json数据除外
         self.data[key] = value  
-        sql_path = self.sql_path
-        SQL_conn = SQL(sql_path)
-        pre_sql = '''INSERT OR REPLACE INTO BOT_CONF(bot_key,bot_var)VALUES(?,?);'''
-        # '''UPDATE BOT_CONF SET bot_var = ? WHERE bot_key is ?;'''
-        # '''REPLACE INTO bot_conf ('bot_key','bot_var') VALUES (?,?)'''
-        # '''UPDATE bot_conf SET 'var' = 12345 WHERE 'key' is 'qq';'''
-        cur = SQL_conn.connection.cursor()
-        try:
-            cur.execute(pre_sql,(key,value))
-            SQL_conn.connection.commit()
-            cur.close()
-            SQL_conn.connection.total_changes
-            # SQL_conn.write_sql(pre_sql,(value,key))
-        except:
-            raise(Exception,'sqlerror')   
-    def add_admin(self,admin,platform):
-        if platform == 0 :
-            if admin not in self.data['qq_admin']:
-                list.append(self.data['qq_admin'],admin)
-        elif platform== 1:
-            if admin not in self.data['tg_admin']:
-                list.append(self.data['tg_admin'],admin)
-        self.save_json()
-    def del_admin(self,admin,platform):
-        if platform == 0 :
-            if admin  in self.data['qq_admin']:
-                list.remove(self.data['qq_admin'],admin)
-        elif platform== 1:
-            if admin in self.data['tg_admin']:
-                list.remove(self.data['tg_admin'],admin)
-        self.save_json()
-    def save_json(self):        # 将通过json存储的数据全部转化为json并保存
-        tempdict = {}
-        for key in self.jsonconf:
-            tempdict[key] = self.data[key]
-        strjson = json.dumps(tempdict)
-        sql_path = self.sql_path
-        SQL_conn = SQL(sql_path)
-        pre_sql = '''INSERT OR REPLACE INTO BOT_CONF(bot_key,bot_var)VALUES(?,?);'''
-        cur = SQL_conn.connection.cursor()
-        try:
-            cur.execute(pre_sql,('JSON',strjson))
-            SQL_conn.connection.commit()
-            cur.close()
-            if SQL_conn.connection.total_changes == 0:
-                self.log(3,'未能更改数据库数据!')
-            # SQL_conn.write_sql(pre_sql,(value,key))
-        except:
-            self.log(4,'数据库错误，即将回滚!')
-            SQL_conn.connection.rollback()
-            cur.close()
-            #raise(Exception,'sqlerror')
+        data = self.data
+        s_json = json.dumps(data)
+        f_conf = open(self.Data_Path+'/conf/bot.json',"w",encoding="utf-8")
+        f_conf.write(s_json)
+        f_conf.close()
+        return True
+
 class SQL(object):
     def __init__(self,Path):
         self.connection = sqlite3.connect(Path)
@@ -186,14 +158,15 @@ class Group(dict):
         SQL_conn = SQL(sql_path)
         platform_number = [0,1]         # 所有platform的数字
         # 所有键名称
-        self.key = ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_Trust')
-        self.jsonconf = ['setcoc','admin']
+        self.key = ('Group_Platform','Group_ID','Group_Setcoc','Group_Name','Group_Owner','Group_Status','Group_Trust')
+        #self.jsonconf = ['Group_Setcoc','admin']
+        self.singleconf = ['card','admin','name']
         self.statusconf = ['isBotOn','isPluginOn','isLogOn']
         # platform 为群组出自平台，qq 为 0，tg 为 1 
         pre_sql = '''CREATE TABLE IF NOT EXISTS GROUP_CONF(
     'Group_Platform'          integer              NOT NULL,
     'Group_ID'              integer           NOT NULL,
-    'Group_JSON'              TEXT            default '{"admin":[0],"setcoc":0}',
+    'Group_Setcoc'             integer        default 0,
     'Group_Name'              TEXT            default '群聊',
     'Group_Owner'             integer         default 0,
     'Group_Status'       integer         default 3,
@@ -210,17 +183,30 @@ class Group(dict):
             self[i]['group_list'] = list()
         if not temp == []:
             for group_temp_val in temp:      # 单个群组
-
                 self[group_temp_val[0]][group_temp_val[1]] = {}     # Group[平台][群号][属性]
                 self[group_temp_val[0]]['group_list'].append(group_temp_val[1])
                 for i in range(len(self.key)):
                     self[group_temp_val[0]][group_temp_val[1]][self.key[i]] = group_temp_val[i]
-                s_json = self[group_temp_val[0]][group_temp_val[1]]['Group_JSON']
-                tmpjson = json.loads(s_json)
-                dict.update(self[group_temp_val[0]][group_temp_val[1]],tmpjson)
                 b_status = self[group_temp_val[0]][group_temp_val[1]]['Group_Status']
                 status = self.__bintostatus(b_status)
                 dict.update(self[group_temp_val[0]][group_temp_val[1]],status)
+                # 读取单群信息
+                pre_sql = '''CREATE TABLE IF NOT EXISTS group_{0}_{1}(
+    'key'          TEXT              NOT NULL,
+    'val_1'              integer           NOT NULL,
+    'val_2'             Text            default 'default text',
+    PRIMARY KEY('key','val_1')
+);'''.format(str(group_temp_val[0]),str(group_temp_val[1]))
+                #print(pre_sql)
+                SQL_conn.cursor.execute(pre_sql)
+                pre_sql = '''SELECT * FROM group_{0:d}_{1:d};'''.format(group_temp_val[0],group_temp_val[1])
+                SQL_conn.cursor.execute(pre_sql)
+                for all_keys in self.singleconf:
+                    self[group_temp_val[0]][group_temp_val[1]][all_keys] = dict()
+                this_group = SQL_conn.cursor.fetchall()
+                if this_group != []:
+                    for this_key in this_group:
+                        self[group_temp_val[0]][group_temp_val[1]][this_key[0]][this_key[1]] = this_key[2]
                 # self[group_temp_val[0]][group_temp_val[1]] = json.loads(s_json)
         SQL_conn.cursor.close()
         self.sql_path = sql_path
@@ -228,7 +214,7 @@ class Group(dict):
     def __bintostatus(self,b_status):
         status = {}
         for i in range(len(self.statusconf)):
-            thisbit = b_status>>i&1
+            thisbit = b_status&1<<i
             if thisbit:
                 status[self.statusconf[i]]=True
             else:
@@ -243,38 +229,55 @@ class Group(dict):
                 status = status+thisbit
         return status
     def set(self, key, value,platform,group_id):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key']
-        self[platform][group_id][key] = value
-        tempdict = {}
-        for tempkey in self.jsonconf:
-            tempdict[tempkey] = self[platform][group_id][tempkey]
-        Group_JSON = json.dumps(tempdict)
-        groupdict = self[platform][group_id]
-        Group_Status = self.__statustobin(groupdict)
-        sql_path = self.sql_path
-        SQL_conn = SQL(sql_path)
-        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_Trust')
-        VALUES(?,?,?,?,?,?,?);'''
-        Group_Platform = self[platform][group_id]['Group_Platform']
-        Group_Name = self[platform][group_id]['Group_Name']
-        Group_ID = self[platform][group_id]['Group_ID']
-        Group_Owner = self[platform][group_id]['Group_Owner']
-        # Group_Status = self[platform][group_id]['Group_Status']
-        Group_Trust = self[platform][group_id]['Group_Trust']
-        try:
-            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_JSON,Group_Name,Group_Owner,Group_Status,Group_Trust))
-            SQL_conn.connection.commit()
-            if SQL_conn.connection.total_changes == 0:
-                self.log(3,'未能更改数据库数据!')
-                # SQL_conn.write_sql(pre_sql,(value,key))
+        if key in self.singleconf:
+            val_1 = value[0]
+            val_2 = value[1]
+            self[platform][group_id][key][val_1] = val_2
+            sql_path = self.sql_path
+            SQL_conn = SQL(sql_path)
+            pre_sql = '''INSERT OR REPLACE INTO group_{0:d}_{1:d} ('key','val_1','val_2')
+            VALUES(?,?,?)'''.format(platform,group_id)
+            try:
+                SQL_conn.cursor.execute(pre_sql,(key,val_1,val_2))
+                SQL_conn.connection.commit()
+                if SQL_conn.connection.total_changes == 0:
+                    self.log(3,'未能更改数据库数据!')
+                    # SQL_conn.write_sql(pre_sql,(value,key))
+                    return False
+                return True
+            except Exception as err:
+                self.log(4,'数据库错误，即将回滚!'+err.__str__())
+                SQL_conn.connection.rollback()
                 return False
-            return True
-        except Exception as err:
-            self.log(4,'数据库错误，即将回滚!'+err.__str__())
-            SQL_conn.connection.rollback()
-            return False
+        else:
+            self[platform][group_id][key] = value
+            groupdict = self[platform][group_id]
+            Group_Status = self.__statustobin(groupdict)
+            sql_path = self.sql_path
+            SQL_conn = SQL(sql_path)
+            pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_Setcoc','Group_Name','Group_Owner','Group_Status','Group_Trust')
+            VALUES(?,?,?,?,?,?,?);'''
+            Group_Platform = self[platform][group_id]['Group_Platform']
+            Group_Name = self[platform][group_id]['Group_Name']
+            Group_Setcoc = self[platform][group_id]['Group_Setcoc']
+            Group_ID = self[platform][group_id]['Group_ID']
+            Group_Owner = self[platform][group_id]['Group_Owner']
+            Group_Trust = self[platform][group_id]['Group_Trust']
+            try:
+                SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_Setcoc,Group_Name,Group_Owner,Group_Status,Group_Trust))
+                SQL_conn.connection.commit()
+                if SQL_conn.connection.total_changes == 0:
+                    self.log(3,'未能更改数据库数据!')
+                    # SQL_conn.write_sql(pre_sql,(value,key))
+                    return False
+                return True
+            except Exception as err:
+                self.log(4,'数据库错误，即将回滚!'+err.__str__())
+                SQL_conn.connection.rollback()
+                return False
 
     # 添加新群组
-    def add_group(self,Group_Platform,Group_ID,admin = [0],setcoc = 0,Group_Name = '群聊',Group_Owner=0,Group_Status = 3,Group_Trust = 0,isBotOn = True,isPluginOn = True,isLogOn = False):
+    def add_group(self,Group_Platform,Group_ID,admin = [0],Group_Setcoc = 0,Group_Name = '群聊',Group_Owner=0,Group_Status = 3,Group_Trust = 0,isBotOn = True,isPluginOn = True,isLogOn = False):
         if Group_ID not in self[Group_Platform]['group_list']:
             self[Group_Platform]['group_list'].append(Group_ID)
         self[Group_Platform][Group_ID] = {
@@ -285,30 +288,34 @@ class Group(dict):
             'Group_Status'  : Group_Status,
             'Group_Trust'   : Group_Trust,
             'admin'         : admin,
-            'setcoc'        : setcoc,
+            'card' : {},
+            'name' : {},
+            'Group_Setcoc'        : Group_Setcoc,
             'isBotOn'       : isBotOn,
             'isPluginOn'    : isPluginOn,
             'isLogOn'       : isLogOn,
         }
-        tempdict = {}
-        for tempkey in self.jsonconf:
-            tempdict[tempkey] = self[Group_Platform][Group_ID][tempkey]
-        Group_JSON = json.dumps(tempdict)
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
-        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_JSON','Group_Name','Group_Owner','Group_Status','Group_Trust')
+        pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_Setcoc','Group_Name','Group_Owner','Group_Status','Group_Trust')
         VALUES(?,?,?,?,?,?,?);'''
-        
+
         try:
-            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_JSON,Group_Name,Group_Owner,Group_Status,Group_Trust))
+            SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_Setcoc,Group_Name,Group_Owner,Group_Status,Group_Trust))
+            pre_sql = '''CREATE TABLE IF NOT EXISTS group_{0:d}_{1:d}(
+    'key'          TEXT              NOT NULL,
+    'val_1'              integer           NOT NULL,
+    'val_2'             Text            default 'default text',
+    PRIMARY KEY('key','val_1')
+);'''.format(Group_Platform,Group_ID)
             SQL_conn.connection.commit()
             if SQL_conn.connection.total_changes == 0:
                 self.log(3,'未能更改数据库数据!')
                 # SQL_conn.write_sql(pre_sql,(value,key))
                 return False
             return True
-        except:
-            self.log(4,'数据库错误，即将回滚!')
+        except Exception as err:
+            self.log(4,'数据库错误，即将回滚!'+err.__str__())
             SQL_conn.connection.rollback()
             return False
 
@@ -330,7 +337,7 @@ class User(dict):
     'U_Platform'          integer         NOT NULL,
     'U_ID'                integer         NOT NULL,
     'U_Name'              TEXT            default '用户',
-    'U_EnabledCard'       integer         default 1,
+    'U_EnabledCard'       integer         default 0,
     'U_Trust'             integer         default 0,
     'U_CriticalSuccess'   integer         default 0,
     'U_ExtremeSuccess'    integer         default 0,
@@ -351,13 +358,14 @@ class User(dict):
                 self[temp_val[0]]['user_list'].append(temp_val[1])
                 for i in range(len(self.key)):
                     self[temp_val[0]][temp_val[1]][self.key[i]] = temp_val[i]
-                # s_json = self[group_temp_val[0]][group_temp_val[1]]['Group_JSON']
+                # s_json = self[group_temp_val[0]][group_temp_val[1]]['Group_Setcoc']
                 # self[group_temp_val[0]][group_temp_val[1]] = json.loads(s_json)
         SQL_conn.cursor.close()
         self.sql_path = sql_path
     # 添加新用户
-    def add_user(self,U_Platform,U_ID,U_Name='用户',sender = {},U_EnabledCard=1,U_Trust=0,U_CriticalSuccess=0,U_ExtremeSuccess=0,U_HardSuccess=0,U_RegularSuccess=0,U_Failure=0,U_Fumble=0):
-        # 'sender': {'age': 0, 'area': '', 'card': '', 'level': '', 'nickname': '雨鸣于舟', 'role': 'owner', 'sex': 'unknown', 'title': 'Master', 'user_id': 1620706761},
+    def add_user(self,U_Platform,U_ID,U_Name='用户',sender = {},U_EnabledCard=0,U_Trust=0,U_CriticalSuccess=0,U_ExtremeSuccess=0,U_HardSuccess=0,U_RegularSuccess=0,U_Failure=0,U_Fumble=0):
+        # 'sender': {'age': 0, 'area': '', 'card': '', 'level': '', 'nickname': 'xxx', 'role': 'owner', 'sex': 'unknown', 'title': '头衔', 'user_id': 1234567890},
+        self.log(0,'adding user:['+str(U_Platform)+']('+str(U_ID)+')')
         if sender != {}:
             if U_Name == '用户':
                 U_Name = sender['nickname']
@@ -379,16 +387,16 @@ class User(dict):
         # tempdict = {}
         # for tempkey in self.jsonconf:
         #     tempdict[tempkey] = self[Group_Platform][Group_ID][tempkey]
-        # Group_JSON = json.dumps(tempdict)
+        # Group_Setcoc = json.dumps(tempdict)
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
         
         try:
             #print('### trying to create tab')
-            pre_sql =f''' CREATE TABLE IF NOT EXISTS user_%d_%d('Card_ID'  INTEGER PRIMARY KEY NOT NULL , 'Card_Name' text, 'Card_JSON' text);'''%(U_Platform,U_ID)
+            pre_sql =f''' CREATE TABLE IF NOT EXISTS user_%d_%d('user_key'  TEXT PRIMARY KEY NOT NULL , 'val_1' text, 'val_2' text);'''%(U_Platform,U_ID)
             SQL_conn.cursor.execute(pre_sql)
             #print('### trying to insert usercard')
-            pre_sql =''' INSERT INTO user_%d_%d(Card_ID,Card_Name,Card_JSON) VALUES (1,'用户标准人物卡','{"_null" : -1}');'''%(U_Platform,U_ID)
+            pre_sql =''' INSERT OR REPLACE INTO user_%d_%d('user_key','val_1','val_2') VALUES ('card-0','用户标准人物卡','{"_null" : -1}');'''%(U_Platform,U_ID)
             SQL_conn.cursor.execute(pre_sql)
             #print('### trying to insert user')
             pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
@@ -444,18 +452,21 @@ class User(dict):
     def get_card(self,platform , user_id):
         if user_id not in self[platform]['user_list']:
             self.add_user(U_Platform=platform,U_ID=user_id)
-            return {'id' : 1,'name' : '用户','data' : {"_null" : -1}}
+            return {'id' : 0,'name' : '用户标准人物卡','data' : {"_null" : -1}}
         sql_conn = SQL(self.sql_path)
         en_card = self[platform][user_id]['U_EnabledCard']
-        pre_sql = '''SELECT * FROM user_%d_%d WHERE Card_ID = %d;'''%(platform,user_id,en_card)
+        en_card_txt = 'card-'+str(en_card)
+        pre_sql = '''SELECT * FROM user_{0:d}_{1:d} WHERE user_key = {2};'''.format(platform,user_id,"'"+en_card_txt+"'")
         try:
             #print('### trying to get card')
             #print(pre_sql)
             sql_conn.cursor.execute(pre_sql)#,(en_card))
+            self.log(0,pre_sql)
             temp = sql_conn.cursor.fetchone()
             if temp == None:
-                return {'id' : 1,'name' : '用户','data' : {"_null" : -1}}
-            card_id = temp[0]
+                return {'id' : 0,'name' : '用户标准人物卡','data' : {"_null" : -1}}
+            card_id_txt = temp[0][5:]
+            card_id = int(card_id_txt)
             card_name = temp[1]
             card_json = temp[2]
             #print('### trying to load card')
@@ -465,41 +476,32 @@ class User(dict):
                 'name' : card_name,
                 'data' : card_dict
             }
+            self.log(0,'loading card:'+card.__str__())
             return card
-        except:
-            self.log(4,'无法读取人物卡数据！user.get_card')
-            return {'id' : 1,'name' : '用户','data' : {"_null" : -1}}
-    def set_card(self,platform , user_id, card_dict ,card_name = None,en_card=-1):   # 用st进行人物卡设置
+        except Exception as err:
+            self.log(4,'无法读取人物卡数据！user.get_card :'+ err.__str__())
+            return {'id' : 0,'name' : '用户标准人物卡','data' : {"_null" : -1}}
+    def set_card(self,platform:int, user_id:int, card_dict:dict,card_name = None,en_card=-1):   # 用st进行人物卡设置
         if user_id not in self[platform]['user_list']:
             self.add_user(U_Platform=platform,U_ID=user_id)
         sql_conn = SQL(self.sql_path)
         if en_card == -1:
             en_card = self[platform][user_id]['U_EnabledCard']
-        pre_sql = '''SELECT * FROM user_%d_%d WHERE Card_ID = %d;'''%(platform,user_id,en_card)
+        en_card_txt = 'card-'+str(en_card)
         try:
-            #print(pre_sql)
-            sql_conn.cursor.execute(pre_sql)
-            temp = sql_conn.cursor.fetchone()
-            if temp == None:
-                temp = [1,'用户','{"_null" : -1}']
-            card_id = temp[0]
-            #print(temp)
-            if card_name == None:
-                card_name = temp[1]
-            card_json = temp[2]
-            card_dict_all = json.loads(card_json)
-            dict.update(card_dict_all,card_dict)        # 用新字典覆盖原有技能值
             card_json = json.dumps(card_dict)
             # 进行更新
             pre_sql = '''INSERT OR REPLACE INTO user_%d_%d VALUES (?,?,?)'''%(platform,user_id)
-            sql_conn.cursor.execute(pre_sql,(en_card,card_name,card_json))
+            sql_conn.cursor.execute(pre_sql,(en_card_txt,card_name,card_json))
             sql_conn.connection.commit()
+            self.log(0,'setting card:'+en_card_txt+', '+card_name+', '+card_json)
+            self.log(0,pre_sql)
             if sql_conn.connection.total_changes == 0:
                 self.log(3,'未能更改数据库数据!')
                 return False
             return True
-        except:
-            self.log(4,'无法读取人物卡数据！user.set_card')
+        except Exception as err:
+            self.log(4,'无法读取人物卡数据！user.set_card'+err.__str__())
             sql_conn.connection.rollback()
             return False
     def del_card(self,platform , user_id, card_id = None):   # 用st进行人物卡设置
@@ -509,10 +511,11 @@ class User(dict):
         sql_conn = SQL(self.sql_path)
         if card_id == None:
             card_id = self[platform][user_id]['U_EnabledCard']
+        card_id_txt = 'card-'+str(card_id)
         try:
             # 进行更新
-            if card_id == 1:    # 如果是标准卡1，则特殊操作
-                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d (Card_ID,Card_Name,Card_JSON) VALUES (1,'用户标准人物卡','{"_null" : -1}')'''%(platform,user_id)
+            if card_id == 0:    # 如果是标准卡0，则特殊操作
+                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d ('user_key','val_1','val_2') VALUES ('card-0','用户标准人物卡','{"_null" : -1}')'''%(platform,user_id)
                 sql_conn.cursor.execute(pre_sql)
                 sql_conn.connection.commit()
                 if sql_conn.connection.total_changes == 0:
@@ -520,44 +523,52 @@ class User(dict):
                     return False
                 return True
             else:
-                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d(Card_ID) VALUES (?)'''%(platform,user_id)
-                sql_conn.cursor.execute(pre_sql,(card_id))
+                #pre_sql = '''INSERT OR REPLACE INTO user_%d_%d('user_key') VALUES (?)'''%(platform,user_id)
+                pre_sql = '''DELETE FROM user_{0:d}_{1:d} WHERE user_key = {2};'''.format(platform,user_id,"'"+card_id_txt+"'")
+                sql_conn.cursor.execute(pre_sql,card_id_txt)
                 sql_conn.connection.commit()
                 if sql_conn.connection.total_changes == 0:
                     self.log(3,'未能更改数据库数据!')
                     return False
                 return True
-        except:
-            self.log(4,'无法读取人物卡数据！user.del_card')
+        except Exception as err:
+            self.log(4,'无法读取人物卡数据！user.del_card '+err.__str__())
             sql_conn.connection.rollback()
             return False
-    def new_card_id(self,platform , user_id, card_name = '用户'):   # 用st进行人物卡设置
+    def new_card_id(self,platform , user_id, card_name = '用户标准人物卡'):   # 用st进行人物卡设置
         if user_id not in self[platform]['user_list']:
             self.add_user(U_Platform=platform,U_ID=user_id)
             return 1
         sql_conn = SQL(self.sql_path)
         try:
             # 进行更新
-            pre_sql = '''SELECT Card_ID FROM user_%d_%d WHERE Card_Name IS NULL ORDER BY Card_ID ASC'''%(platform,user_id)
+            pre_sql = '''SELECT user_key FROM user_%d_%d WHERE user_key LIKE 'card-%';'''%(platform,user_id)
             sql_conn.cursor.execute(pre_sql)
-            temp = sql_conn.cursor.fetchone()
-            if temp == None:
-                pre_sql = '''INSERT INTO user_%d_%d('Card_Name') VALUES (?)'''%(platform,user_id)
-                sql_conn.cursor.execute(pre_sql,(card_name))
-                pre_sql = '''SELECT Card_ID FROM user_%d_%d ORDER BY Card_ID DESC'''%(platform,user_id)
-                sql_conn.cursor.execute(pre_sql)
-                temp = sql_conn.cursor.fetchone()
-                card_id = temp[0]
+            temp = sql_conn.cursor.fetchall()
+            card_id_list = list()
+            if temp == None:    # 如果没有人物卡则创建基本人物卡
+                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d VALUES (?,?,?)'''%(platform,user_id)
+                sql_conn.cursor.execute(pre_sql,('card-0','用户标准人物卡','{"_null" : -1}'))
+                card_id = 0
             else:
-                card_id = temp[0]
-                pre_sql = '''INSERT INTO user_%d_%d(Card_ID,Card_Name) VALUES (?,?)'''%(platform,user_id)
-                sql_conn.cursor.execute(pre_sql,(card_id,card_name))
+                for i in card_id_list:
+                    id = int(i[0][5:])
+                    card_id_list.append(id)
+                card_id_list.sort()
+                card_id = len(card_id_list)
+                for i in range(card_id):
+                    if i < card_id_list[i]:
+                        card_id = i 
+                        break
+                card_id_txt = 'card-'+str(card_id)
+                pre_sql = '''INSERT OR REPLACE INTO user_%d_%d('user_key','val_1','val_2') VALUES (?,?,?)'''%(platform,user_id)
+                sql_conn.cursor.execute(pre_sql,(card_id_txt,card_name,'{"_null" : -1}'))
             sql_conn.connection.commit()
             if sql_conn.connection.total_changes == 0:
                 self.log(3,'未能更改数据库数据!')
                 return -1
-        except:
-            self.log(4,'无法读取人物卡数据！ user.new_card_id')
+        except Exception as err:
+            self.log(4,'无法读取人物卡数据！ user.new_card_id '+err.__str__())
             sql_conn.connection.rollback()
             return -1
         self.set('U_EnabledCard',card_id,platform,user_id)

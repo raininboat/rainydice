@@ -85,20 +85,20 @@ def bot_init(plugin_event,proc):
             ignore_conf = json.loads(ignore_conf_f.read())
             proc.log(0,'已读取RainyDice配置文件 ignore.json') 
     except:
-        proc.log(0,'未找到RainyDice配置文件 group.json ，即将新建...')
+        proc.log(2,'未找到RainyDice配置文件 ignore.json ，即将新建...')
         ignore_conf = create_ignore_conf(Data_Path=Data_Path,Proc=proc)
     if ignore_conf == None:
-        proc.log(0,'RainyDice配置文件 group.json 错误，即将新建...')
+        proc.log(3,'RainyDice配置文件 ignore.json 错误，即将新建...')
         ignore_conf = create_ignore_conf(Data_Path=Data_Path,Proc=proc)
     if os.path.isfile(Data_Path+'/conf/rankcheck.py'):
         try:
             from plugin.data.rainydice.conf.rankcheck import cocRankCheck
         except:
             cocRankCheck=create_cocRankCheck(Data_Path+'/conf/rankcheck.py')
-            proc.log(0,'RainyDice配置文件 rankcheck.py 错误，即将新建...')
+            proc.log(3,'RainyDice配置文件 rankcheck.py 错误，即将新建...')
     else:
         cocRankCheck=create_cocRankCheck(Data_Path+'/conf/rankcheck.py')
-        proc.log(0,'RainyDice配置文件 rankcheck.py 不存在，即将新建...')
+        proc.log(2,'RainyDice配置文件 rankcheck.py 不存在，即将新建...')
     global RainyDice
     RainyDice = Dice(Data_Path,log=proc.log,ignore=ignore_conf,cocRankCheck=cocRankCheck)
 
@@ -301,6 +301,9 @@ def group_reply(plugin_event, Proc):
         pass
     elif message.startswith('help'):
         pass
+    elif message.startswith('version'):
+        reply = RainyDice.basic.version.fullversion
+        plugin_event.reply(reply)
     else:
         return None
     
