@@ -393,6 +393,7 @@ class Group(dict):
 
     # 删除log记录
     def del_conf(self,key,val_1,platform,group_id):
+        del self[platform][group_id][key][val_1]
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
         pre_sql = '''DELETE FROM group_{platform:d}_{group_id:d} WHERE group_key glob {key} AND val_1 = {val_1}'''.format(platform=platform,group_id=group_id,key='"'+key+'"',val_1=val_1)

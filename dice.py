@@ -695,10 +695,12 @@ class rolldice(object):
             # log end 关闭记录(删除表格)并输出
             if not RainyDice.group[platform][group_id]['isLogOn']:
                 reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
+                if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
+                    RainyDice.group.del_conf('log',0,platform,group_id)
             log_name = RainyDice.group[platform][group_id]['log'][0]
             RainyDice.chat_log.end(log_name)
-            RainyDice.group.set('isLogOn',False,platform,group_id)
             RainyDice.group.del_conf('log',0,platform,group_id)
+            RainyDice.group.set('isLogOn',False,platform,group_id)
             reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
             return 0,False,reply,False
             
