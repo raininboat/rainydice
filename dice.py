@@ -570,7 +570,7 @@ class rolldice(object):
             text = str.format(text,var_a)
         return 1,False,text
     def SETCOC(self,plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID = 0):
-        if message in self.intdict:
+        if str.isdecimal(message):
             Group_Setcoc = self.intdict[message]
             # if Group_Setcoc > 5:
             #     reply = RainyDice.GlobalVal.GlobalMsg['InputErr']

@@ -132,8 +132,17 @@ def create_ignore_conf(Data_Path= '',Proc=None):
     }
     return conf
 def private_reply(plugin_event, Proc):
-    print(plugin_event.data)
-    pass
+    # print(plugin_event.data)
+    # {'font': 0, 'message': '。r', 'message_id': -2028246266, 'message_type': 'private', 'post_type': 'message', 'raw_message': '。r', 'self_id': 123456, 'sender': {'age': 0, 'nickname': 'xxx', 'sex': 'unknown', 'user_id': 654321}, 'sub_type': 'friend', 'target_id': 123456, 'time': 1632070731, 'user_id': 654321}
+    User_ID = int(plugin_event.data.user_id)
+    message = plugin_event.data.message
+    Platform = RainyDice.platform_dict[plugin_event.platform['platform']]
+    if User_ID not in RainyDice.user[Platform]['user_list']:  # 创建新用户
+        RainyDice.user.add_user(U_Platform=Platform,U_ID=User_ID,sender = plugin_event.data.sender)
+    if message[0] not in RainyDice.GlobalVal.Command_Start_Sign :
+        return None
+    message=message[1:].lower()
+    command_run(message,plugin_event,Proc,User_ID,Platform,0)
 def heartbeat_reply(plugin_event,proc):
     pass
 
@@ -176,16 +185,18 @@ def group_reply(plugin_event, Proc):
     # 如果群聊关闭且未at bot，则不回应
     if RainyDice.group[Group_Platform][Group_ID]['isBotOn'] == 0 and isAtBot == False:    # 如果没开启且没at bot 则不处理消息
         return None
-    if message == '' :
-        return None
     if message[0] not in RainyDice.GlobalVal.Command_Start_Sign :
         return None
     if User_ID not in RainyDice.user[Group_Platform]['user_list']:  # 创建新用户
         RainyDice.user.add_user(U_Platform=Group_Platform,U_ID=User_ID,sender = plugin_event.data.sender)
     message=message[1:].lower()
-    message = message.rstrip()
-    rd = rolldice(RainyDice.cocRankCheck)
+    command_run(message,plugin_event,Proc,User_ID,Group_Platform,Group_ID)
+
+def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=0):
     # cal = rainydice.rainydice.calculate.RPN()
+    Group_Platform = Platform
+    rd = rolldice(RainyDice.cocRankCheck)
+    message = message.strip()
     if message.startswith('ra') or message.startswith('rc'):
         if message == 'ra' or message == 'rc':
             plugin_event.reply(RainyDice.GlobalVal.getHelpDoc('ra'))
@@ -221,6 +232,10 @@ def group_reply(plugin_event, Proc):
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply)
         return 1
     elif message.startswith('rh'):          # 懒得写到dice里面了，直接这样吧(#被拖走)
+        if Group_ID == 0:
+            reply = RainyDice.GlobalVal.GlobalMsg['OnlyInGroup']
+            plugin_event.reply(reply)
+            return 1
         if message == 'rh':
             message = '1d100'
         else:
@@ -298,7 +313,11 @@ def group_reply(plugin_event, Proc):
     elif message.startswith('admin'):
         pass
     elif message.startswith('log'):
-        pass
+        if Group_ID == 0 or message == 'log':
+            plugin_event.reply(RainyDice.GlobalVal.getHelpDoc('log'))
+        else:
+            pass
+        return 1
     elif message.startswith('help'):
         pass
     elif message.startswith('version'):
