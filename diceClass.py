@@ -43,7 +43,6 @@ class Dice(object):
         }
         self.sql_path = Data_Path + '/RainyDice.db'
         self.data_path = Data_Path
-        self.csvinit = '''"ID","Platform","User_ID","User_Name","User_Text","Log_Time","Group_ID","Group_Name"\n'''
         self.log = log
         self.ignore = ignore
         self.cocRankCheck = cocRankCheck
@@ -56,6 +55,7 @@ class Dice(object):
 class chat_log(object):
     def __init__(self,Data_path,log,bot):
         self.sql_path = Data_path + '/RainyDice.db'
+        self.csvinit = '''"ID","Platform","User_ID","User_Name","User_Text","Log_Time","Group_ID","Group_Name"\n'''
         self.log_path = Data_path + '/log/'
         self.proc_log = log
         self.csvOn = bot.data['log']['csv']     # csv输出
