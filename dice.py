@@ -27,7 +27,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-
+from sqlite3.dbapi2 import Time
+import time
 import re
 from rainydice.diceClass import Dice
 from rainydice.constant import Constant
@@ -666,3 +667,38 @@ class rolldice(object):
             }
             reply = str.format_map(reply,replace)
             return 2 ,False,reply
+
+    def LOG(self,plugin_event,Proc,RainyDice:Dice,message:str,user_id:int,platform:int,group_id = 0):
+        if message.startswith('on'):
+            # log on 开始记录（创建表格）
+            if RainyDice.group[platform][group_id]['isLogOn']:
+                reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOn']
+                return 0,False,reply,True
+            RainyDice.group.set('isLogOn',True,platform,group_id)
+            if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
+                log_name = RainyDice.group[platform][group_id]['log'][0]
+            else:
+                log_name = 'log_{0:d}_{1:d}_{2:d}'.format(platform,group_id,time.time().__int__())
+                RainyDice.group.set('log',(0,log_name),platform,group_id)
+                RainyDice.chat_log.create(log_name)
+            reply= RainyDice.GlobalVal.GlobalMsg['logOnReply']
+            return 0,False,reply,True
+        elif message.startswith('off'):
+            # log off 暂停记录
+            if not RainyDice.group[platform][group_id]['isLogOn']:
+                reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
+                return 0,False,reply
+            RainyDice.group.set('isLogOn',False,platform,group_id)
+            reply= RainyDice.GlobalVal.GlobalMsg['logOffReply']
+            return 0,False,reply,False
+        elif message.startswith('end'):
+            # log end 关闭记录(删除表格)并输出
+            if not RainyDice.group[platform][group_id]['isLogOn']:
+                reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
+            log_name = RainyDice.group[platform][group_id]['log'][0]
+            RainyDice.chat_log.end(log_name)
+            RainyDice.group.set('isLogOn',False,platform,group_id)
+            RainyDice.group.del_conf('log',0,platform,group_id)
+            reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
+            return 0,False,reply,False
+            

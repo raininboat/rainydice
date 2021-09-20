@@ -80,7 +80,12 @@ class GlobalVal(object):
         'enReplySuccess' : '{User_Name}进行 {Skill_Name} 幕间成长:\nD100 = {Roll} / {Old_Skill} 成功！\n{Skill_Name}：{Old_Skill}+{En_Exp}={Old_Skill}+{En_Step}={Now_Skill}',
         'nnReply' : '已将{User_Name}的用户名称改为：{New_Name}',
         'OnlyInGroup' : '该指令只能在群聊中使用！',
-        'setcocReply' : '群聊房规属性已改为{setcoc}:\n{setcocExplain}'
+        'setcocReply' : '群聊房规属性已改为{setcoc}:\n{setcocExplain}',
+        'logAlreadyOn' : 'logAlreadyOn',
+        'logAlreadyOff' : 'logAlreadyOff',
+        'logOnReply' : 'logOnReply',
+        'logOffReply' : 'logOffReply',
+        'logEndReply' : 'logEndReply'
         
     }
     GlobalVal = {

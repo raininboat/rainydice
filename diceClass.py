@@ -42,7 +42,8 @@ class Dice(object):
             'telegram' : 1
         }
         self.sql_path = Data_Path + '/RainyDice.db'
-        self.Data_path = Data_Path
+        self.data_path = Data_Path
+        self.csvinit = '''"ID","Platform","User_ID","User_Name","User_Text","Log_Time","Group_ID","Group_Name"\n'''
         self.log = log
         self.ignore = ignore
         self.cocRankCheck = cocRankCheck
@@ -51,6 +52,103 @@ class Dice(object):
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
         self.basic = basic_info(sql_path=self.sql_path,log = log)
+        self.chat_log = chat_log(Data_path=self.data_path,log=log,bot=self.bot)
+class chat_log(object):
+    def __init__(self,Data_path,log,bot):
+        self.sql_path = Data_path + '/RainyDice.db'
+        self.log_path = Data_path + '/log/'
+        self.proc_log = log
+        self.csvOn = bot.data['log']['csv']     # csv输出
+        self.txtOn = bot.data['log']['txt']     # txt输出
+        self.docOn = bot.data['log']['doc']     # word文档模式      # 先不做
+        self.key = ('ID','Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
+    def log_name_create(self,platform,group_id):
+        log_name = 'log_{0:d}_{1:d}_{2:d}'.format(platform,group_id,time.time())
+        return log_name
+    def create(self,log_name):
+        SQL_conn = SQL(self.sql_path)
+        pre_sql = '''CREATE TABLE IF NOT EXISTS {log_name}(
+    'ID'    INTEGER PRIMARY KEY   AUTOINCREMENT,
+    'Platform'      integer         NOT NULL,
+    'User_ID'       integer         default 0,
+    'User_Name'     TEXT            default '用户',
+    'User_Text'     TEXT            default '',
+    'Log_Time'      integer         default 0,
+    'Group_ID'       integer        default 0,
+    'Group_Name'     TEXT           default '群聊'
+);'''.format(log_name=log_name)
+        SQL_conn.cursor.execute(pre_sql)
+        SQL_conn.connection.commit()
+        self.proc_log(0,'Created Log Form: '+log_name)
+    def log(self,log_name,platform,user_id,user_name,user_text,log_time,group_id=0,group_name='群聊'):
+        SQL_conn = SQL(self.sql_path)
+        pre_sql = '''INSERT INTO {log_name}('Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
+        VALUES (?,?,?,?,?,?,?);'''.format(log_name=log_name)
+        try:
+            SQL_conn.cursor.execute(pre_sql,(platform,user_id,user_name,user_text,log_time,group_id,group_name))
+            SQL_conn.connection.commit()
+            self.proc_log(0,'logging！sql: '+pre_sql+' ; val: '+(platform,user_id,user_name,user_text,log_time,group_id,group_name).__str__())
+        except Exception as err:
+            self.proc_log(3,'log失败！sql: '+pre_sql+' ; err: '+err.__str__())
+            SQL_conn.connection.rollback()
+    def __logline(self,log_dict:dict):
+        strkey = ('User_Name','User_Text','Group_Name')
+        line = {}
+        if self.txtOn:
+            log_time_arr = time.localtime(log_dict['Log_Time'])
+            log_dict['Time'] = time.strftime('%Y-%m-%d %H:%M:%S',log_time_arr)
+            txtline = '''{User_Name}({User_ID:d}) {Time}\n{User_Text}\n\n'''.format_map(log_dict)
+            line['txt'] = txtline
+        if self.csvOn:
+            log_dict_fm = log_dict.copy()
+            for i in strkey:
+                log_dict_fm[i] = str.replace(log_dict[i],'"','""')
+            csvline = '''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm)
+            line['csv']= csvline
+        return line
+    def end(self,log_name):
+        SQL_conn = SQL(self.sql_path)
+        pre_sql = '''SELECT * FROM {log_name}'''.format(log_name=log_name)
+        try:
+            if self.txtOn:
+                txt_file = open(self.log_path+log_name+'.txt', 'a', encoding = 'utf-8')
+            if self.csvOn:
+                csv_file = open(self.log_path+log_name+'.csv', 'a', encoding = 'gbk')
+            if self.docOn:
+                # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
+                pass
+            SQL_conn.cursor.execute(pre_sql)
+            temp = SQL_conn.cursor.fetchall()
+            if temp != []:
+                if self.csvOn:
+                    csv_file.write(self.csvinit)
+                for line in temp:
+                    line_dict = {}
+                    for i in range(len(self.key)):
+                        line_dict[self.key[i]] = line[i]
+                    logline_dict = self.__logline(log_dict=line_dict)
+                    if self.txtOn:
+                        txt_file.write(logline_dict['txt'])
+                    if self.csvOn:
+                        csv_file.write(logline_dict['csv'])
+                    if self.docOn:
+                        # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
+                        pass
+                pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
+                SQL_conn.cursor.execute(pre_sql)
+                SQL_conn.connection.commit()
+        except Exception as err:
+            self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
+            SQL_conn.connection.rollback()
+        finally:
+            if self.txtOn:
+                txt_file.close()
+            if self.csvOn:
+                csv_file.close()
+            if self.docOn:
+                # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
+                pass
+
 class basic_info(object):
     def __init__(self,sql_path,log):
         SQL_conn = SQL(sql_path)
@@ -113,6 +211,12 @@ class bot(object):
                 log(3,'RainyDice配置文件 bot.json 错误！即将重置...') 
                 bot_conf = self.create_bot_conf(Data_Path,log)
         self.data = bot_conf
+        if 'log' not in bot_conf.keys():
+            logconf = {
+            'csv' : True,
+            'txt' : True
+        }
+            self.set('log',logconf)
     
     def create_bot_conf(self,Data_Path= '',log=None):
         f_conf = open(Data_Path+'/conf/bot.json',"w",encoding="utf-8")
@@ -121,7 +225,12 @@ class bot(object):
     "qq_master" : 0,
     "qq_admin" : [0],
     "tg_master": 0,
-    "tg_admin" : [0]
+    "tg_admin" : [0],
+    "log":{
+        "csv" : true,
+        "doc" : true,
+        "txt" : true
+    }
 }'''
         f_conf.write(default_conf)
         f_conf.close()
@@ -130,7 +239,12 @@ class bot(object):
         "qq_master" : 0,
         "qq_admin" : [0],
         "tg_master": 0,
-        "tg_admin" : [0]
+        "tg_admin" : [0],
+        'log' : {
+            'csv' : True,
+            'doc' : True,
+            'txt' : True
+        }
     }
         return conf
 
@@ -160,7 +274,7 @@ class Group(dict):
         # 所有键名称
         self.key = ('Group_Platform','Group_ID','Group_Setcoc','Group_Name','Group_Owner','Group_Status','Group_Trust')
         #self.jsonconf = ['Group_Setcoc','admin']
-        self.singleconf = ['card','admin','name']
+        self.singleconf = ['card','admin','name','log']
         self.statusconf = ['isBotOn','isPluginOn','isLogOn']
         # platform 为群组出自平台，qq 为 0，tg 为 1 
         pre_sql = '''CREATE TABLE IF NOT EXISTS GROUP_CONF(
@@ -192,15 +306,16 @@ class Group(dict):
                 dict.update(self[group_temp_val[0]][group_temp_val[1]],status)
                 # 读取单群信息
                 pre_sql = '''CREATE TABLE IF NOT EXISTS group_{0}_{1}(
-    'key'          TEXT              NOT NULL,
+    'group_key'          TEXT              NOT NULL,
     'val_1'              integer           NOT NULL,
     'val_2'             Text            default 'default text',
-    PRIMARY KEY('key','val_1')
+    PRIMARY KEY('group_key','val_1')
 );'''.format(str(group_temp_val[0]),str(group_temp_val[1]))
                 #print(pre_sql)
                 SQL_conn.cursor.execute(pre_sql)
                 pre_sql = '''SELECT * FROM group_{0:d}_{1:d};'''.format(group_temp_val[0],group_temp_val[1])
                 SQL_conn.cursor.execute(pre_sql)
+                SQL_conn.connection.commit()
                 for all_keys in self.singleconf:
                     self[group_temp_val[0]][group_temp_val[1]][all_keys] = dict()
                 this_group = SQL_conn.cursor.fetchall()
@@ -235,7 +350,7 @@ class Group(dict):
             self[platform][group_id][key][val_1] = val_2
             sql_path = self.sql_path
             SQL_conn = SQL(sql_path)
-            pre_sql = '''INSERT OR REPLACE INTO group_{0:d}_{1:d} ('key','val_1','val_2')
+            pre_sql = '''INSERT OR REPLACE INTO group_{0:d}_{1:d} ('group_key','val_1','val_2')
             VALUES(?,?,?)'''.format(platform,group_id)
             try:
                 SQL_conn.cursor.execute(pre_sql,(key,val_1,val_2))
@@ -276,6 +391,24 @@ class Group(dict):
                 SQL_conn.connection.rollback()
                 return False
 
+    # 删除log记录
+    def del_conf(self,key,val_1,platform,group_id):
+        sql_path = self.sql_path
+        SQL_conn = SQL(sql_path)
+        pre_sql = '''DELETE FROM group_{platform:d}_{group_id:d} WHERE group_key glob {key} AND val_1 = {val_1}'''.format(platform=platform,group_id=group_id,key='"'+key+'"',val_1=val_1)
+        try:
+            SQL_conn.cursor.execute(pre_sql)
+            SQL_conn.connection.commit()
+            if SQL_conn.connection.total_changes == 0:
+                self.log(3,'未能更改数据库数据!')
+                # SQL_conn.write_sql(pre_sql,(value,key))
+                return False
+            return True
+        except Exception as err:
+            self.log(4,'数据库错误，即将回滚!'+err.__str__())
+            SQL_conn.connection.rollback()
+            return False
+    
     # 添加新群组
     def add_group(self,Group_Platform,Group_ID,admin = [0],Group_Setcoc = 0,Group_Name = '群聊',Group_Owner=0,Group_Status = 3,Group_Trust = 0,isBotOn = True,isPluginOn = True,isLogOn = False):
         if Group_ID not in self[Group_Platform]['group_list']:
@@ -303,10 +436,10 @@ class Group(dict):
         try:
             SQL_conn.cursor.execute(pre_sql,(Group_Platform,Group_ID,Group_Setcoc,Group_Name,Group_Owner,Group_Status,Group_Trust))
             pre_sql = '''CREATE TABLE IF NOT EXISTS group_{0:d}_{1:d}(
-    'key'          TEXT              NOT NULL,
+    'group_key'          TEXT              NOT NULL,
     'val_1'              integer           NOT NULL,
     'val_2'             Text            default 'default text',
-    PRIMARY KEY('key','val_1')
+    PRIMARY KEY('group_key','val_1')
 );'''.format(Group_Platform,Group_ID)
             SQL_conn.connection.commit()
             if SQL_conn.connection.total_changes == 0:
@@ -350,6 +483,7 @@ class User(dict):
         SQL_conn.cursor.execute(pre_sql)
         pre_sql = '''SELECT * FROM USER_CONF;'''
         SQL_conn.cursor.execute(pre_sql)
+        SQL_conn.connection.commit()
         temp = SQL_conn.cursor.fetchall()
         # print (temp)
         if not temp == []:
@@ -573,4 +707,4 @@ class User(dict):
             return -1
         self.set('U_EnabledCard',card_id,platform,user_id)
         return card_id
-    
+
