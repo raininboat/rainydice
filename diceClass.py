@@ -317,7 +317,7 @@ class Group(dict):
                 SQL_conn.cursor.execute(pre_sql)
                 SQL_conn.connection.commit()
                 for all_keys in self.singleconf:
-                    self[group_temp_val[0]][group_temp_val[1]][all_keys] = dict()
+                    self[group_temp_val[0]][group_temp_val[1]][all_keys] = {}
                 this_group = SQL_conn.cursor.fetchall()
                 if this_group != []:
                     for this_key in this_group:
@@ -423,6 +423,7 @@ class Group(dict):
             'admin'         : admin,
             'card' : {},
             'name' : {},
+            'log'  : {},
             'Group_Setcoc'        : Group_Setcoc,
             'isBotOn'       : isBotOn,
             'isPluginOn'    : isPluginOn,
