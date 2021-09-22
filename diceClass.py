@@ -112,11 +112,10 @@ class chat_log(object):
     def cqcode_replace(self,text:str):
         # at 信息单独做出来
         restr = '(\[CQ:at,qq=(\d+)\])'
-        reobj = re.search(restr,text)
-        if reobj:
-            #print(b)
-            #print(b.groups())
-            text= text.replace(reobj.groups()[0],'[@'+reobj.groups()[1]+']')
+        reobj = re.findall(restr,text)
+        if reobj != []:
+            for cqat , qq in reobj:
+                text= text.replace(cqat,'[@'+qq+']')
         restr_tamplate = '(\[CQ:{cqtype}.*?\])'
         cqcode_types = {
             'image' : '[图片]',
@@ -135,11 +134,10 @@ class chat_log(object):
         }
         for k,j in cqcode_types.items():
             restr = restr_tamplate.format(cqtype=k)
-            reobj = re.search(restr,text)
-            if reobj:
-                # print(b)
-                # print(b.groups())
-                text= text.replace(reobj.groups()[0],j)
+            reobj = re.findall(restr,text)
+            if reobj != []:
+                for cqcode in reobj:
+                    text= text.replace(cqcode,j)
         return text
     def __escape(self,string:str):
         repldict = {
