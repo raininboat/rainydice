@@ -35,6 +35,7 @@ from rainydice import version,author
 import json
 import sqlite3
 import time
+import re
 class Dice(object):
     def __init__(self,Data_Path,log,cocRankCheck,ignore={}):
         self.platform_dict = {
@@ -83,6 +84,7 @@ class chat_log(object):
         SQL_conn = SQL(self.sql_path)
         pre_sql = '''INSERT INTO {log_name}('Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
         VALUES (?,?,?,?,?,?,?);'''.format(log_name=log_name)
+        user_text = self.__escape(self.cqcode_replace(user_text))
         try:
             SQL_conn.cursor.execute(pre_sql,(platform,user_id,user_name,user_text,log_time,group_id,group_name))
             SQL_conn.connection.commit()
@@ -107,6 +109,38 @@ class chat_log(object):
             del log_dict_fm
 
         return line
+    def cqcode_replace(self,text:str):
+        # at 信息单独做出来
+        restr = '(\[CQ:at,qq=(\d+)\])'
+        reobj = re.search(restr,text)
+        if reobj:
+            #print(b)
+            #print(b.groups())
+            text= text.replace(reobj.groups()[0],'[@'+reobj.groups()[1]+']')
+        restr_tamplate = '(\[CQ:{cqtype}.*?\])'
+        cqcode_types = {
+            'image' : '[图片]',
+            'record' : '[语音]',
+            'face' : '[QQ表情]',
+            'share' : '[链接]',
+            'music' : '[音乐]',
+            'reply' : '[回复]',
+            'location' : '[位置]',
+            'contact' : '[名片]',
+            'anunymous' : '[匿名消息]',
+            'redbag' : '[QQ红包]',
+            'shake' : '[戳一戳]',
+            'video' : '[短视频]',
+            '' : '[其他消息]'
+        }
+        for k,j in cqcode_types.items():
+            restr = restr_tamplate.format(cqtype=k)
+            reobj = re.search(restr,text)
+            if reobj:
+                # print(b)
+                # print(b.groups())
+                text= text.replace(reobj.groups()[0],j)
+        return text
     def __escape(self,string:str):
         repldict = {
             ' ' : '&nbsp;',
