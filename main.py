@@ -207,7 +207,7 @@ def group_reply(plugin_event, Proc):
     # 如果群聊关闭且未at bot，则不回应
     if RainyDice.group[Group_Platform][Group_ID]['isBotOn'] == 0 and isAtBot == False:    # 如果没开启且没at bot 则不处理消息
         return None
-    if message[0] not in RainyDice.GlobalVal.Command_Start_Sign :
+    if message =='' or message[0] not in RainyDice.GlobalVal.Command_Start_Sign :
         return None
     message=message[1:].lower()
     command_run(message,plugin_event,Proc,User_ID,Group_Platform,Group_ID,isLogOn)

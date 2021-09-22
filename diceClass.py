@@ -52,15 +52,14 @@ class Dice(object):
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
         self.basic = basic_info(sql_path=self.sql_path,log = log)
         self.chat_log = chat_log(Data_path=self.data_path,log=log,bot=self.bot)
+
 class chat_log(object):
     def __init__(self,Data_path,log,bot):
         self.sql_path = Data_path + '/RainyDice.db'
         self.csvinit = '''"ID","Platform","User_ID","User_Name","User_Text","Log_Time","Group_ID","Group_Name"\n'''
         self.log_path = Data_path + '/log/'
         self.proc_log = log
-        self.csvOn = bot.data['log']['csv']     # csv输出
-        self.txtOn = bot.data['log']['txt']     # txt输出
-        self.docOn = bot.data['log']['doc']     # word文档模式      # 先不做
+        self.logconf = bot.data['log']
         self.key = ('ID','Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
     def log_name_create(self,platform,group_id):
         log_name = 'log_{0:d}_{1:d}_{2:d}'.format(platform,group_id,time.time())
@@ -94,44 +93,70 @@ class chat_log(object):
     def __logline(self,log_dict:dict):
         strkey = ('User_Name','User_Text','Group_Name')
         line = {}
-        if self.txtOn:
+        if self.logconf['txt']:
             log_time_arr = time.localtime(log_dict['Log_Time'])
             log_dict['Time'] = time.strftime('%Y-%m-%d %H:%M:%S',log_time_arr)
-            txtline = '''{User_Name}({User_ID:d}) {Time}\n{User_Text}\n\n'''.format_map(log_dict)
+            txtline = self.__deescape('''{User_Name}({User_ID:d}) {Time}\n{User_Text}\n\n'''.format_map(log_dict))
             line['txt'] = txtline
-        if self.csvOn:
+        if self.logconf['csv']:
             log_dict_fm = log_dict.copy()
             for i in strkey:
                 log_dict_fm[i] = str.replace(log_dict[i],'"','""')
-            csvline = '''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm)
+            csvline = self.__deescape('''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm))
             line['csv']= csvline
+            del log_dict_fm
+
         return line
+    def __escape(self,string:str):
+        repldict = {
+            ' ' : '&nbsp;',
+            '"' : '&#34;',
+            "'" : '&#39;'
+            }
+        for i,v in repldict.items():
+            string=str.replace(string,i,v)
+        # string.replace('&amp;','&')
+        return string
+
+    def __deescape(self,string:str):
+        repldict = {
+            '&nbsp;' : ' ',
+            '&#91;' : '[',
+            '&#93;' : ']',
+            '&#34;' : '"',
+            '&#39;' : "'"
+        }
+        for i,v in repldict.items():
+            string=str.replace(string,i,v)
+        string=str.replace(string,'&amp;','&')
+        # self.proc_log(0,'deescaped message: '+string)
+        return string
     def end(self,log_name):
         SQL_conn = SQL(self.sql_path)
         pre_sql = '''SELECT * FROM {log_name}'''.format(log_name=log_name)
         try:
-            if self.txtOn:
-                txt_file = open(self.log_path+log_name+'.txt', 'a', encoding = 'utf-8')
-            if self.csvOn:
-                csv_file = open(self.log_path+log_name+'.csv', 'a', encoding = 'gbk')
-            if self.docOn:
+            if self.logconf['txt']:
+                txt_file = open(self.log_path+log_name+'.txt', 'a', encoding = 'utf-8-sig',errors='ignore')
+            if self.logconf['csv']:
+                csv_file = open(self.log_path+log_name+'.csv', 'a', encoding = 'utf-8-sig',errors='ignore')
+            if self.logconf['doc']:
                 # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
                 pass
             SQL_conn.cursor.execute(pre_sql)
             temp = SQL_conn.cursor.fetchall()
             if temp != []:
-                if self.csvOn:
+                if self.logconf['csv']:
                     csv_file.write(self.csvinit)
                 for line in temp:
                     line_dict = {}
                     for i in range(len(self.key)):
                         line_dict[self.key[i]] = line[i]
                     logline_dict = self.__logline(log_dict=line_dict)
-                    if self.txtOn:
+                    if self.logconf['txt']:
                         txt_file.write(logline_dict['txt'])
-                    if self.csvOn:
+                    if self.logconf['csv']:
                         csv_file.write(logline_dict['csv'])
-                    if self.docOn:
+                    if self.logconf['doc']:
                         # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
                         pass
                 pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
@@ -141,11 +166,11 @@ class chat_log(object):
             self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
             SQL_conn.connection.rollback()
         finally:
-            if self.txtOn:
+            if self.logconf['txt']:
                 txt_file.close()
-            if self.csvOn:
+            if self.logconf['csv']:
                 csv_file.close()
-            if self.docOn:
+            if self.logconf['doc']:
                 # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
                 pass
 
@@ -211,13 +236,25 @@ class bot(object):
                 log(3,'RainyDice配置文件 bot.json 错误！即将重置...') 
                 bot_conf = self.create_bot_conf(Data_Path,log)
         self.data = bot_conf
-        if 'log' not in bot_conf.keys():
-            logconf = {
+        
+        logconf = {
             'csv' : True,
+            "txtRendered" : True,
+            "doc" : True,
             'txt' : True
         }
+        if 'log' not in bot_conf.keys() or type(bot_conf['log']) != dict:
             self.set('log',logconf)
-    
+        else:
+            ischanged = False
+            logkeys = self.data['log'].keys()
+            for key in logconf.keys():
+                if key not in logkeys:
+                    self.data['log'][key] = logconf[key]
+                    ischanged = True
+            if ischanged:
+                self.set()                
+        
     def create_bot_conf(self,Data_Path= '',log=None):
         f_conf = open(Data_Path+'/conf/bot.json',"w",encoding="utf-8")
         default_conf = '''{
@@ -229,6 +266,7 @@ class bot(object):
     "log":{
         "csv" : true,
         "doc" : true,
+        "txtRendered" : true,
         "txt" : true
     }
 }'''
@@ -243,15 +281,17 @@ class bot(object):
         'log' : {
             'csv' : True,
             'doc' : True,
+            "txtRendered" : True,
             'txt' : True
         }
     }
         return conf
 
-    def set(self, key, value):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key'] admin等json数据除外
-        self.data[key] = value  
+    def set(self, key=None, value=None):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key'] admin等json数据除外
+        if key != None:
+            self.data[key] = value  
         data = self.data
-        s_json = json.dumps(data)
+        s_json = json.dumps(data,ensure_ascii=False,indent='    ',sort_keys=True)
         f_conf = open(self.Data_Path+'/conf/bot.json',"w",encoding="utf-8")
         f_conf.write(s_json)
         f_conf.close()
@@ -443,6 +483,7 @@ class Group(dict):
     'val_2'             Text            default 'default text',
     PRIMARY KEY('group_key','val_1')
 );'''.format(Group_Platform,Group_ID)
+            SQL_conn.cursor.execute(pre_sql)
             SQL_conn.connection.commit()
             if SQL_conn.connection.total_changes == 0:
                 self.log(3,'未能更改数据库数据!')
