@@ -27,13 +27,13 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-from sqlite3.dbapi2 import Time
 import time
 import re
 from rainydice.diceClass import Dice
 from rainydice.constant import Constant
 from rainydice.cal_btree import calculate
 from random import randint
+import rainydice.sendemail
 class rolldice(object):
     intdict = { '0' : 0, '1' : 1, '2' : 2, '3' : 3, '4' : 4, '5' : 5, '6' : 6, '7' : 7, '8' : 8, '9' : 9 }
     def __init__(self,cocRankCheck):
@@ -698,9 +698,24 @@ class rolldice(object):
                 if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
                     RainyDice.group.del_conf('log',0,platform,group_id)
             log_name = RainyDice.group[platform][group_id]['log'][0]
-            RainyDice.chat_log.end(log_name)
-            RainyDice.group.del_conf('log',0,platform,group_id)
-            RainyDice.group.set('isLogOn',False,platform,group_id)
-            reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
+            status,log_path = RainyDice.chat_log.end(log_name)
+            if status:
+                if RainyDice.bot.data['email']['enabled']:
+                    if platform == 0:
+                        receiver = [(RainyDice.user[platform][user_id]['U_Name'],str(user_id)+"@qq.com")]
+                        status = rainydice.sendemail.send_email(RainyDice.bot.data,log_path,receiver)
+                        if status:
+                            reply = '发送log至邮箱成功！'
+                        else:
+                            reply = '发送log至邮箱失败！'
+                    else:
+                        reply = '未完成qq以外平台的email发送，请联系管理员获取log！\n文件：'+log_path+'*.*'
+                else:
+                    reply = 'email发送模块关闭，请联系管理员获取log！\n文件：'+log_path+'*.*'
+                RainyDice.group.del_conf('log',0,platform,group_id)
+                RainyDice.group.set('isLogOn',False,platform,group_id)
+                # reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
+            else:
+                reply = log_path
             return 0,False,reply,False
             

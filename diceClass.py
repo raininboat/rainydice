@@ -36,6 +36,8 @@ import json
 import sqlite3
 import time
 import re
+import html
+import os
 class Dice(object):
     def __init__(self,Data_Path,log,cocRankCheck,ignore={}):
         self.platform_dict = {
@@ -58,10 +60,23 @@ class chat_log(object):
     def __init__(self,Data_path,log,bot):
         self.sql_path = Data_path + '/RainyDice.db'
         self.csvinit = '''"ID","Platform","User_ID","User_Name","User_Text","Log_Time","Group_ID","Group_Name"\n'''
+        self.htmlhead = '''\
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title>
+</head>
+<body>
+'''
+        self.htmlend = '''\
+</body>
+</html>'''
         self.log_path = Data_path + '/log/'
         self.proc_log = log
         self.logconf = bot.data['log']
         self.key = ('ID','Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
+        self.colorid = ["#FF0000","#008000","#FFC0CB","#FFA500","#800080","#000000","#0000FF","#FFFF00","#CD5C5C","#A52A2A","#008080","#000080","#800000","#32CD32","#00FFFF","#FF00FF","#808000"]
     def log_name_create(self,platform,group_id):
         log_name = 'log_{0:d}_{1:d}_{2:d}'.format(platform,group_id,time.time())
         return log_name
@@ -95,19 +110,32 @@ class chat_log(object):
     def __logline(self,log_dict:dict):
         strkey = ('User_Name','User_Text','Group_Name')
         line = {}
-        if self.logconf['txt']:
-            log_time_arr = time.localtime(log_dict['Log_Time'])
-            log_dict['Time'] = time.strftime('%Y-%m-%d %H:%M:%S',log_time_arr)
-            txtline = self.__deescape('''{User_Name}({User_ID:d}) {Time}\n{User_Text}\n\n'''.format_map(log_dict))
-            line['txt'] = txtline
+        log_time_arr = time.localtime(log_dict['Log_Time'])
+        log_dict['Time'] = time.strftime('%Y-%m-%d %H:%M:%S',log_time_arr)
+        log_dict['Time_Short'] = time.strftime('%H:%M:%S',log_time_arr)
+        log_dict['detext'] = self.__deescape(log_dict['User_Text'])
+        log_dict['dename'] = self.__deescape(log_dict['User_Name'])
+        line['txt'] = '''{dename}({User_ID:d}) {Time}\n{detext}\n\n'''.format_map(log_dict)
+        text_lst = str.splitlines(log_dict['detext'],keepends=False)
+        # 获取当前log行染色颜色的编号
+        colorid = self.colorid[log_dict['user_color_id']%len(self.colorid)]
+        htmllst = []
+        # print(log_dict)
+        for txt in text_lst:
+            htmllst.append('''\
+<span style="color: #C0C0C0;font-size: 1.5">{time}</span>
+<span style="color: {color};font-size: 1.5">&lt;{name}&gt; {text}</span>
+<br/>
+'''.format(time=log_dict['Time_Short'],color=colorid,name=html.escape(log_dict['dename']),text=html.escape(txt)))
+        # print(htmllst)
+        line['html'] = ''.join(htmllst)
         if self.logconf['csv']:
             log_dict_fm = log_dict.copy()
             for i in strkey:
                 log_dict_fm[i] = str.replace(log_dict[i],'"','""')
-            csvline = self.__deescape('''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm))
-            line['csv']= csvline
+            line['csv'] = self.__deescape('''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm))
             del log_dict_fm
-
+        # print(line)
         return line
     def cqcode_replace(self,text:str):
         # at 信息单独做出来
@@ -146,7 +174,8 @@ class chat_log(object):
             "'" : '&#39;'
             }
         for i,v in repldict.items():
-            string=str.replace(string,i,v)
+            if i in string:
+                string=str.replace(string,i,v)
         # string.replace('&amp;','&')
         return string
 
@@ -159,52 +188,66 @@ class chat_log(object):
             '&#39;' : "'"
         }
         for i,v in repldict.items():
-            string=str.replace(string,i,v)
-        string=str.replace(string,'&amp;','&')
+            if i in string:
+                string=str.replace(string,i,v)
+        if '&amp;' in string:
+            string=str.replace(string,'&amp;','&')
         # self.proc_log(0,'deescaped message: '+string)
         return string
     def end(self,log_name):
         SQL_conn = SQL(self.sql_path)
         pre_sql = '''SELECT * FROM {log_name}'''.format(log_name=log_name)
-        try:
-            if self.logconf['txt']:
-                txt_file = open(self.log_path+log_name+'.txt', 'a', encoding = 'utf-8-sig',errors='ignore')
-            if self.logconf['csv']:
-                csv_file = open(self.log_path+log_name+'.csv', 'a', encoding = 'utf-8-sig',errors='ignore')
-            if self.logconf['doc']:
-                # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
-                pass
-            SQL_conn.cursor.execute(pre_sql)
-            temp = SQL_conn.cursor.fetchall()
-            if temp != []:
+        log_path = self.log_path+log_name+'/'
+#        try:
+        if not os.path.exists(log_path):
+            os.mkdir(log_path)
+        txt_file = open(log_path+'log_raw.txt', 'w', encoding = 'utf-8',errors='ignore')
+        html_file = open(log_path+'log.html', 'w', encoding = 'utf-8',errors='ignore')
+        html_file.write(self.htmlhead)
+        if self.logconf['csv']:
+            csv_file = open(log_path+'log_form.csv', 'w', encoding = 'utf-8-sig',errors='ignore')
+            csv_file.write(self.csvinit)
+        if self.logconf['doc']:
+            pass
+        SQL_conn.cursor.execute(pre_sql)
+        temp = SQL_conn.cursor.fetchall()
+        # print(temp)
+        if temp != []:
+            user_list = []
+            for line in temp:
+                line_dict = {}
+                for i in range(len(self.key)):
+                    line_dict[self.key[i]] = line[i]
+                if line_dict['User_ID'] in user_list:
+                    line_dict['user_color_id'] = user_list.index(line_dict['User_ID'])
+                else:
+                    line_dict['user_color_id'] = len(user_list)
+                    user_list.append(line_dict['User_ID'])
+                logline_dict = self.__logline(log_dict=line_dict)
+                txt_file.write(logline_dict['txt'])
+                html_file.write(logline_dict['html'])
                 if self.logconf['csv']:
-                    csv_file.write(self.csvinit)
-                for line in temp:
-                    line_dict = {}
-                    for i in range(len(self.key)):
-                        line_dict[self.key[i]] = line[i]
-                    logline_dict = self.__logline(log_dict=line_dict)
-                    if self.logconf['txt']:
-                        txt_file.write(logline_dict['txt'])
-                    if self.logconf['csv']:
-                        csv_file.write(logline_dict['csv'])
-                    if self.logconf['doc']:
-                        # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
-                        pass
-                pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
-                SQL_conn.cursor.execute(pre_sql)
-                SQL_conn.connection.commit()
-        except Exception as err:
-            self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
-            SQL_conn.connection.rollback()
-        finally:
-            if self.logconf['txt']:
-                txt_file.close()
-            if self.logconf['csv']:
-                csv_file.close()
-            if self.logconf['doc']:
-                # txt_file = open(self.log_path+log_name+'.txt', 'w', encoding = 'utf-8')
-                pass
+                    csv_file.write(logline_dict['csv'])
+                if self.logconf['doc']:
+                    pass
+            html_file.write(self.htmlend)
+            pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
+            SQL_conn.cursor.execute(pre_sql)
+            SQL_conn.connection.commit()
+            status = True
+        # except Exception as err:
+        #     self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
+        #     SQL_conn.connection.rollback()
+        #     status = False
+        #     log_path = 'log end失败！err: '+err.__str__()
+        # finally:
+        txt_file.close()
+        html_file.close()
+        if self.logconf['csv']:
+            csv_file.close()
+        if self.logconf['doc']:
+            pass
+        return status,log_path
 
 class basic_info(object):
     def __init__(self,sql_path,log):
@@ -262,10 +305,12 @@ class bot(object):
             log(0,'已读取RainyDice配置文件 bot.json') 
         except:
             log(2,'未找到RainyDice配置文件 bot.json ，即将新建...') 
+            log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json') 
             bot_conf = self.create_bot_conf(Data_Path,log)
         finally:
             if bot_conf == None:
                 log(3,'RainyDice配置文件 bot.json 错误！即将重置...') 
+                log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json')
                 bot_conf = self.create_bot_conf(Data_Path,log)
         self.data = bot_conf
         
@@ -273,50 +318,96 @@ class bot(object):
             'csv' : True,
             "txtRendered" : True,
             "doc" : True,
-            'txt' : True
+            "txtRaw" : True
         }
+        emailconf = {
+        "enabled" : False,
+        "host" : "SMTP发送服务器，去不同服务商的文档中查看：e.g：smtp.exmail.qq.com",
+        "port" : 465,
+        "ssl" : True,
+        "useraddr" : "具体邮箱名称：e.g: noreply@mail.rainydice.cn",
+        "password" : "邮箱smtp客户端授权码：xxxxxxxxxxx"
+    }
+        ischanged = False
         if 'log' not in bot_conf.keys() or type(bot_conf['log']) != dict:
-            self.set('log',logconf)
+            self.data['log'] = logconf
+            ischanged = True
         else:
-            ischanged = False
-            logkeys = self.data['log'].keys()
+            tmpkeys = self.data['log'].keys()
             for key in logconf.keys():
-                if key not in logkeys:
+                if key not in tmpkeys:
                     self.data['log'][key] = logconf[key]
                     ischanged = True
-            if ischanged:
-                self.set()                
+        if 'email' not in bot_conf.keys() or type(bot_conf['email']) != dict:
+            self.data['email'] = emailconf
+            ischanged = True
+            log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json 完成 email 适配')
+        else:
+            tmpkeys = self.data['email'].keys()
+            for key in emailconf.keys():
+                if key not in tmpkeys:
+                    self.data['email'][key] = logconf[key]
+                    log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json 完成 email 适配')
+                    ischanged = True
+        if ischanged:
+            self.set()                
         
     def create_bot_conf(self,Data_Path= '',log=None):
         f_conf = open(Data_Path+'/conf/bot.json',"w",encoding="utf-8")
-        default_conf = '''{
-    "name" : "本机器人",
-    "qq_master" : 0,
-    "qq_admin" : [0],
-    "tg_master": 0,
-    "tg_admin" : [0],
-    "log":{
-        "csv" : true,
-        "doc" : true,
-        "txtRendered" : true,
-        "txt" : true
-    }
-}'''
+        default_conf = '''\
+{
+    "email":{
+        "enabled" : false,
+        "host" : "SMTP发送服务器，去不同服务商的文档中查看：e.g：smtp.exmail.qq.com",
+        "port" : 465,
+        "ssl" : true,
+        "useraddr" : "具体邮箱名称：e.g: noreply@mail.rainydice.cn",
+        "password" : "邮箱smtp客户端授权码：xxxxxxxxxxx"
+    },
+    "log": {
+        "csv": false,
+        "doc": true,
+        "txtRendered": true,
+        "txtRaw" : true
+    },
+    "name": "本机器人",
+    "qq_admin": [
+        0
+    ],
+    "qq_master": 0,
+    "tg_admin": [
+        0
+    ],
+    "tg_master": 0
+}
+'''
         f_conf.write(default_conf)
         f_conf.close()
         conf = {
-        "name" : "本机器人",
-        "qq_master" : 0,
-        "qq_admin" : [0],
-        "tg_master": 0,
-        "tg_admin" : [0],
-        'log' : {
-            'csv' : True,
-            'doc' : True,
-            "txtRendered" : True,
-            'txt' : True
-        }
-    }
+    "email":{
+        "enabled" : False,
+        "host" : "SMTP发送服务器，去不同服务商的文档中查看：e.g：smtp.exmail.qq.com",
+        "port" : 465,
+        "ssl" : True,
+        "useraddr" : "具体邮箱名称：e.g: noreply@mail.rainydice.cn",
+        "password" : "邮箱smtp客户端授权码：xxxxxxxxxxx"
+    },
+    "log": {
+        "csv": False,
+        "doc": True,
+        "txtRendered" : True,
+        "txtRaw" : True
+    },
+    "name": "本机器人",
+    "qq_admin": [
+        0
+    ],
+    "qq_master": 0,
+    "tg_admin": [
+        0
+    ],
+    "tg_master": 0
+}
         return conf
 
     def set(self, key=None, value=None):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key'] admin等json数据除外
