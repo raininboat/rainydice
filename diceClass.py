@@ -198,55 +198,55 @@ class chat_log(object):
         SQL_conn = SQL(self.sql_path)
         pre_sql = '''SELECT * FROM {log_name}'''.format(log_name=log_name)
         log_path = self.log_path+log_name+'/'
-#        try:
-        if not os.path.exists(log_path):
-            os.mkdir(log_path)
-        txt_file = open(log_path+'log_raw.txt', 'w', encoding = 'utf-8',errors='ignore')
-        html_file = open(log_path+'log.html', 'w', encoding = 'utf-8',errors='ignore')
-        html_file.write(self.htmlhead)
-        if self.logconf['csv']:
-            csv_file = open(log_path+'log_form.csv', 'w', encoding = 'utf-8-sig',errors='ignore')
-            csv_file.write(self.csvinit)
-        if self.logconf['doc']:
-            pass
-        SQL_conn.cursor.execute(pre_sql)
-        temp = SQL_conn.cursor.fetchall()
-        # print(temp)
-        if temp != []:
-            user_list = []
-            for line in temp:
-                line_dict = {}
-                for i in range(len(self.key)):
-                    line_dict[self.key[i]] = line[i]
-                if line_dict['User_ID'] in user_list:
-                    line_dict['user_color_id'] = user_list.index(line_dict['User_ID'])
-                else:
-                    line_dict['user_color_id'] = len(user_list)
-                    user_list.append(line_dict['User_ID'])
-                logline_dict = self.__logline(log_dict=line_dict)
-                txt_file.write(logline_dict['txt'])
-                html_file.write(logline_dict['html'])
-                if self.logconf['csv']:
-                    csv_file.write(logline_dict['csv'])
-                if self.logconf['doc']:
-                    pass
-            html_file.write(self.htmlend)
-            pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
+        try:
+            if not os.path.exists(log_path):
+                os.mkdir(log_path)
+            txt_file = open(log_path+'log_raw.txt', 'w', encoding = 'utf-8',errors='ignore')
+            html_file = open(log_path+'log.html', 'w', encoding = 'utf-8',errors='ignore')
+            html_file.write(self.htmlhead)
+            if self.logconf['csv']:
+                csv_file = open(log_path+'log_form.csv', 'w', encoding = 'utf-8-sig',errors='ignore')
+                csv_file.write(self.csvinit)
+            if self.logconf['doc']:
+                pass
             SQL_conn.cursor.execute(pre_sql)
-            SQL_conn.connection.commit()
-            status = True
-        # except Exception as err:
-        #     self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
-        #     SQL_conn.connection.rollback()
-        #     status = False
-        #     log_path = 'log end失败！err: '+err.__str__()
-        # finally:
-        txt_file.close()
-        html_file.close()
-        if self.logconf['csv']:
-            csv_file.close()
-        if self.logconf['doc']:
-            pass
+            temp = SQL_conn.cursor.fetchall()
+            # print(temp)
+            if temp != []:
+                user_list = []
+                for line in temp:
+                    line_dict = {}
+                    for i in range(len(self.key)):
+                        line_dict[self.key[i]] = line[i]
+                    if line_dict['User_ID'] in user_list:
+                        line_dict['user_color_id'] = user_list.index(line_dict['User_ID'])
+                    else:
+                        line_dict['user_color_id'] = len(user_list)
+                        user_list.append(line_dict['User_ID'])
+                    logline_dict = self.__logline(log_dict=line_dict)
+                    txt_file.write(logline_dict['txt'])
+                    html_file.write(logline_dict['html'])
+                    if self.logconf['csv']:
+                        csv_file.write(logline_dict['csv'])
+                    if self.logconf['doc']:
+                        pass
+                html_file.write(self.htmlend)
+                pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
+                SQL_conn.cursor.execute(pre_sql)
+                SQL_conn.connection.commit()
+                status = True
+        except Exception as err:
+            self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
+            SQL_conn.connection.rollback()
+            status = False
+            log_path = 'log end失败！err: '+err.__str__()
+        finally:
+            txt_file.close()
+            html_file.close()
+            if self.logconf['csv']:
+                csv_file.close()
+            if self.logconf['doc']:
+                pass
         return status,log_path
 
 class basic_info(object):
