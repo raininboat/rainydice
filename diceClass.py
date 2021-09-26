@@ -30,13 +30,12 @@
 
 from rainydice import GlobalVal
 from rainydice import version,author
+from rainydice.msgesacpe import messageEscape
 # from rainydice.main import RainyDice
 #from data.rainydice import *
 import json
 import sqlite3
 import time
-import re
-import html
 import os
 class Dice(object):
     def __init__(self,Data_Path,log,cocRankCheck,ignore={}):
@@ -99,11 +98,11 @@ class chat_log(object):
         SQL_conn = SQL(self.sql_path)
         pre_sql = '''INSERT INTO {log_name}('Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
         VALUES (?,?,?,?,?,?,?);'''.format(log_name=log_name)
-        user_text = self.__escape(self.cqcode_replace(user_text))
+        user_text = messageEscape.escape_before_save(messageEscape.cqcode_replace(user_text),False)
         try:
             SQL_conn.cursor.execute(pre_sql,(platform,user_id,user_name,user_text,log_time,group_id,group_name))
             SQL_conn.connection.commit()
-            self.proc_log(0,'logging！sql: '+pre_sql+' ; val: '+(platform,user_id,user_name,user_text,log_time,group_id,group_name).__str__())
+            # self.proc_log(0,'logging！sql: '+pre_sql+' ; val: '+(platform,user_id,user_name,user_text,log_time,group_id,group_name).__str__())
         except Exception as err:
             self.proc_log(3,'log失败！sql: '+pre_sql+' ; err: '+err.__str__())
             SQL_conn.connection.rollback()
@@ -113,8 +112,8 @@ class chat_log(object):
         log_time_arr = time.localtime(log_dict['Log_Time'])
         log_dict['Time'] = time.strftime('%Y-%m-%d %H:%M:%S',log_time_arr)
         log_dict['Time_Short'] = time.strftime('%H:%M:%S',log_time_arr)
-        log_dict['detext'] = self.__deescape(log_dict['User_Text'])
-        log_dict['dename'] = self.__deescape(log_dict['User_Name'])
+        log_dict['detext'] = messageEscape.htmlunescape(log_dict['User_Text'])
+        log_dict['dename'] = messageEscape.htmlunescape(log_dict['User_Name'])
         line['txt'] = '''{dename}({User_ID:d}) {Time}\n{detext}\n\n'''.format_map(log_dict)
         text_lst = str.splitlines(log_dict['detext'],keepends=False)
         # 获取当前log行染色颜色的编号
@@ -126,74 +125,17 @@ class chat_log(object):
 <span style="color: #C0C0C0;font-size: 1.5">{time}</span>
 <span style="color: {color};font-size: 1.5">&lt;{name}&gt; {text}</span>
 <br/>
-'''.format(time=log_dict['Time_Short'],color=colorid,name=html.escape(log_dict['dename']),text=html.escape(txt)))
+'''.format(time=log_dict['Time_Short'],color=colorid,name=messageEscape.htmlescape(log_dict['dename']),text=messageEscape.htmlescape(txt)))
         # print(htmllst)
         line['html'] = ''.join(htmllst)
         if self.logconf['csv']:
             log_dict_fm = log_dict.copy()
             for i in strkey:
                 log_dict_fm[i] = str.replace(log_dict[i],'"','""')
-            line['csv'] = self.__deescape('''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm))
+            line['csv'] = messageEscape.htmlunescape('''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm))
             del log_dict_fm
         # print(line)
         return line
-    def cqcode_replace(self,text:str):
-        # at 信息单独做出来
-        restr = '(\[CQ:at,qq=(\d+)\])'
-        reobj = re.findall(restr,text)
-        if reobj != []:
-            for cqat , qq in reobj:
-                text= text.replace(cqat,'[@'+qq+']')
-        restr_tamplate = '(\[CQ:{cqtype}.*?\])'
-        cqcode_types = {
-            'image' : '[图片]',
-            'record' : '[语音]',
-            'face' : '[QQ表情]',
-            'share' : '[链接]',
-            'music' : '[音乐]',
-            'reply' : '[回复]',
-            'location' : '[位置]',
-            'contact' : '[名片]',
-            'anunymous' : '[匿名消息]',
-            'redbag' : '[QQ红包]',
-            'shake' : '[戳一戳]',
-            'video' : '[短视频]',
-            '' : '[其他消息]'
-        }
-        for k,j in cqcode_types.items():
-            restr = restr_tamplate.format(cqtype=k)
-            reobj = re.findall(restr,text)
-            if reobj != []:
-                for cqcode in reobj:
-                    text= text.replace(cqcode,j)
-        return text
-    def __escape(self,string:str):
-        repldict = {
-            ' ' : '&nbsp;',
-            '"' : '&#34;',
-            "'" : '&#39;'
-            }
-        for i,v in repldict.items():
-            if i in string:
-                string=str.replace(string,i,v)
-        # string.replace('&amp;','&')
-        return string
-
-    def __deescape(self,string:str):
-        repldict = {
-            '&nbsp;' : ' ',
-            '&#91;' : '[',
-            '&#93;' : ']',
-            '&#34;' : '"',
-            '&#39;' : "'"
-        }
-        for i,v in repldict.items():
-            if i in string:
-                string=str.replace(string,i,v)
-        if '&amp;' in string:
-            string=str.replace(string,'&amp;','&')
-        # self.proc_log(0,'deescaped message: '+string)
-        return string
     def end(self,log_name):
         SQL_conn = SQL(self.sql_path)
         pre_sql = '''SELECT * FROM {log_name}'''.format(log_name=log_name)
