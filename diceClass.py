@@ -31,6 +31,7 @@
 from rainydice import GlobalVal
 from rainydice import version,author
 from rainydice.msgesacpe import messageEscape
+import rainydice.versionAdapter as versionAdapter
 # from rainydice.main import RainyDice
 #from data.rainydice import *
 import json
@@ -204,38 +205,26 @@ class basic_info(object):
             val = ('version',version,'author',author,'create_time',time.time())
             SQL_conn.cursor.execute(pre_sql,val)
             SQL_conn.connection.commit()
-            self.version = self.__diceversion(version)
+            self.version = versionAdapter.diceversion(version)
         else:
             data = {}
             for i in temp:
                 data[i[0]] = i[1]
             if 'version' not in data:
                 data['version'] = '0.0.0-unknown'
-            self.version = self.__diceversion(data['version'])
+            self.version = versionAdapter.diceversion(data['version'])
             self.author = data['author']
             self.create_time = data['create_time']
-        scriptversion = self.__diceversion(version)
-        # 如果版本号前两位不同，则返回错误      # 本次版本位三位必须相同
-        if self.version.major != scriptversion.major or self.version.minor != scriptversion.minor:
-            log(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+self.data['version'])
-            raise UserWarning('脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+self.data['version'])
         self.sql_path = sql_path
-    class __diceversion(object):
-        def __init__(self,version):
-            self.fullversion = version
-            versionlist = str.split(version,'-')
-            self.shortversion = versionlist[0]
-            if len(versionlist) >=2:
-                releaseversion = versionlist[1]
-                versionlist = str.split(releaseversion,'.')
-                self.releaselevel = versionlist[0]
-                self.releaseinfo = []
-                for i in range(len(versionlist)-1):
-                    self.releaseinfo.append(versionlist[i+1])
-            versionlist = str.split(self.shortversion,'.')
-            self.major = int(versionlist[0])
-            self.minor = int(versionlist[1])
-            self.micro = int(versionlist[2])
+        if self.version.fullversion != version:
+            status,logstr = versionAdapter.version_updater(sql_path,self.version.fullversion)
+            if status:
+                log(logstr[0],logstr[1])
+                self.version=versionAdapter.diceversion(version)
+            else:
+                log(logstr[0],logstr[1])
+                raise UserWarning(logstr[1])
+
 class bot(object):
     def __init__(self,Data_Path,log):
         self.log = log

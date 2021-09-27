@@ -29,7 +29,7 @@
 
 '''
 # import OlivOS
-# import rainydice
+from rainydice import explain
 import os
 import time
 # from plugin.app import rainydice
@@ -359,7 +359,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
     elif message.startswith('help'):
         pass
     elif message.startswith('version'):
-        reply = RainyDice.basic.version.fullversion
+        reply = RainyDice.basic.version.fullversion+'\n'+explain
         func_reply(isLogOn=isLogOn,reply=reply)
     else:
         return None

@@ -26,7 +26,9 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.2-alpha.002' 
+version = '0.3.2-alpha.003' 
+explain='修复存档版本号未更新的问题'
+
 author = 'RainyZhou'
 import rainydice.main
 import rainydice.dice
