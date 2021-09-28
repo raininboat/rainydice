@@ -41,7 +41,7 @@ class GlobalVal(object):
                 temp = self.getHelpDoc(key=newKey)
             return temp
         else:
-            return ''
+            return 'Help Doc: '+key
         
     def getGlobalMsg(self,key=''):
         if key in self.GlobalMsg:

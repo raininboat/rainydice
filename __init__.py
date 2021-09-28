@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.2-alpha.004' 
-explain='优化内存存储，适配历史投掷记录前不再读取实现个人投掷信息'
+version = '0.3.3-alpha.001' 
+explain='添加防撤回功能，详见 readme.md'
 
 author = 'RainyZhou'
 import rainydice.main

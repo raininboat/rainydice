@@ -718,4 +718,14 @@ class rolldice(object):
             else:
                 reply = log_path
             return 0,False,reply,False
-            
+
+    def RECALL(self,plugin_event,Proc,RainyDice:Dice,message:str,user_id:int,platform:int,group_id = 0):
+        if message.startswith('on'):
+            RainyDice.group.set('isBanRecall',True,platform,group_id)
+            reply= '已开启消息撤回阻止'
+            return 0,False,reply
+        elif message.startswith('off'):
+            RainyDice.group.set('isBanRecall',False,platform,group_id)
+            reply= '已关闭消息撤回阻止'
+            return 0,False,reply
+

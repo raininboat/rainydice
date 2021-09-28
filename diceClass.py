@@ -369,7 +369,7 @@ class Group(dict):
         self.key = ('Group_Platform','Group_ID','Group_Setcoc','Group_Name','Group_Owner','Group_Status','Group_Trust')
         #self.jsonconf = ['Group_Setcoc','admin']
         self.singleconf = ['card','admin','name','log']
-        self.statusconf = ['isBotOn','isPluginOn','isLogOn']
+        self.statusconf = ['isBotOn','isPluginOn','isLogOn','isBanRecall']
         # platform 为群组出自平台，qq 为 0，tg 为 1 
         pre_sql = '''CREATE TABLE IF NOT EXISTS GROUP_CONF(
     'Group_Platform'          integer              NOT NULL,
@@ -513,7 +513,7 @@ class Group(dict):
             'Group_Name'    : Group_Name,
             'Group_ID'      : Group_ID,
             'Group_Owner'   : Group_Owner,
-            'Group_Status'  : Group_Status,
+            #'Group_Status'  : Group_Status,
             'Group_Trust'   : Group_Trust,
             'admin'         : admin,
             'card' : {},
@@ -523,7 +523,10 @@ class Group(dict):
             'isBotOn'       : isBotOn,
             'isPluginOn'    : isPluginOn,
             'isLogOn'       : isLogOn,
+            'isBanRecall'   : False
         }
+        self[Group_Platform][Group_ID]['Group_Status'] = self.__statustobin(groupdict=self[Group_Platform][Group_ID])
+        Group_Status = self[Group_Platform][Group_ID]['Group_Status']
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
         pre_sql = '''INSERT OR REPLACE INTO GROUP_CONF ('Group_Platform','Group_ID','Group_Setcoc','Group_Name','Group_Owner','Group_Status','Group_Trust')
@@ -631,7 +634,7 @@ class User(dict):
         #     pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
         # VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
             pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust')
-        VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
+        VALUES(?,?,?,?,?);'''
             # SQL_conn.cursor.execute(pre_sql,(U_Platform,U_ID,U_Name,U_EnabledCard,U_Trust,U_CriticalSuccess,U_ExtremeSuccess,U_HardSuccess,U_RegularSuccess,U_Failure,U_Fumble))
             SQL_conn.cursor.execute(pre_sql,(U_Platform,U_ID,U_Name,U_EnabledCard,U_Trust))
             #print('### trying to commit')
@@ -641,8 +644,8 @@ class User(dict):
                 # SQL_conn.write_sql(pre_sql,(value,key))
                 return False
             return True
-        except:
-            self.log(4,'数据库错误，即将回滚!')
+        except Exception as err:
+            self.log(4,'数据库错误，即将回滚! err: ' +err.__str__())
             SQL_conn.connection.rollback()
             return False
     def set(self, key, value,platform,user_id):      # 设置用户基本属性，人物卡不在这里

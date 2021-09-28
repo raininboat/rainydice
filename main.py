@@ -66,7 +66,9 @@ class Event(object):
         pass
     def group_file_upload(plugin_event, Proc):
         pass
-
+    def group_message_recall(plugin_event, Proc):
+        group_message_recall_reply(plugin_event, Proc)
+        pass
 
 def bot_init(plugin_event,proc):
     OlivOS_Path = sys.path[0]
@@ -211,6 +213,22 @@ def group_reply(plugin_event, Proc):
         return None
     message=message[1:].lower()
     command_run(message,plugin_event,Proc,User_ID,Group_Platform,Group_ID,isLogOn)
+def group_message_recall_reply(plugin_event, Proc):
+    Group_Platform = RainyDice.platform_dict[plugin_event.platform['platform']]
+    Group_ID = int(plugin_event.data.group_id)
+    User_ID = int(plugin_event.data.user_id)
+    Operator_ID = int(plugin_event.data.operator_id)
+    message_id = int(plugin_event.data.message_id)
+    # 如果群组位于ignore list中则直接无视，不进行任何操作
+    if Group_ID in RainyDice.ignore[plugin_event.platform['platform']]['group'] and RainyDice.ignore['ignore']==True:           # 黑名单模式（仅列表中不回应）
+        return None
+    elif Group_ID not in RainyDice.ignore[plugin_event.platform['platform']]['group'] and RainyDice.ignore['ignore']==False:    # 白名单模式（仅列表中回应）
+        return None
+    elif not RainyDice.group[Group_Platform][Group_ID]['isBanRecall'] or User_ID != Operator_ID:
+        return None
+    #[CQ:reply,text=Hello World,qq=10086,time=3376656000,seq=5123]
+    reply = '[CQ:reply,id={id}]#'.format(id=message_id)
+    plugin_event.reply(reply)
 
 def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=0,isLogOn=False):
     # cal = rainydice.rainydice.calculate.RPN()
@@ -300,6 +318,14 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             status,isMultiReply ,reply = rd.ST(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
+    elif message.startswith('recall'):
+        if Group_ID == 0 or message == 'recall':
+            func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('recall'))
+        else:
+            message = str.strip(message[6:])
+            status,isMultiReply ,reply = rd.RECALL(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
+        return 1
     elif message.startswith('r'):
         if len(message) == 1:
             message = 'r1d100'
@@ -359,7 +385,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
     elif message.startswith('help'):
         pass
     elif message.startswith('version'):
-        reply = RainyDice.basic.version.fullversion+'\n'+explain
+        reply = 'RainyDice Version: \n'+RainyDice.basic.version.fullversion+'\n'+explain
         func_reply(isLogOn=isLogOn,reply=reply)
     else:
         return None
