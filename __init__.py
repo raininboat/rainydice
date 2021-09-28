@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.2-alpha.003' 
-explain='修复存档版本号未更新的问题'
+version = '0.3.2-alpha.004' 
+explain='优化内存存储，适配历史投掷记录前不再读取实现个人投掷信息'
 
 author = 'RainyZhou'
 import rainydice.main

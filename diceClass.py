@@ -555,7 +555,8 @@ class User(dict):
         self.sql_path=sql_path
         self.platform_number = [0,1]         # 所有platform的数字
         # 所有键名称
-        self.key = ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
+        self.keyall = ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
+        self.key = ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust')
         self.card_key = ('Card_ID','Card_Name','Card_JSON')
         for i in self.platform_number:   # 初始化每个平台的字典
             self[i] = {}
@@ -578,7 +579,8 @@ class User(dict):
     primary key ('U_Platform','U_ID')
 );'''
         SQL_conn.cursor.execute(pre_sql)
-        pre_sql = '''SELECT * FROM USER_CONF;'''
+        # pre_sql = '''SELECT * FROM USER_CONF;'''
+        pre_sql = '''SELECT U_Platform,U_ID,U_Name,U_EnabledCard,U_Trust FROM USER_CONF;'''
         SQL_conn.cursor.execute(pre_sql)
         SQL_conn.connection.commit()
         temp = SQL_conn.cursor.fetchall()
@@ -594,7 +596,7 @@ class User(dict):
         SQL_conn.cursor.close()
         self.sql_path = sql_path
     # 添加新用户
-    def add_user(self,U_Platform,U_ID,U_Name='用户',sender = {},U_EnabledCard=0,U_Trust=0,U_CriticalSuccess=0,U_ExtremeSuccess=0,U_HardSuccess=0,U_RegularSuccess=0,U_Failure=0,U_Fumble=0):
+    def add_user(self,U_Platform,U_ID,U_Name='用户',sender = {},U_EnabledCard=0,U_Trust=0): # ,U_CriticalSuccess=0,U_ExtremeSuccess=0,U_HardSuccess=0,U_RegularSuccess=0,U_Failure=0,U_Fumble=0):
         # 'sender': {'age': 0, 'area': '', 'card': '', 'level': '', 'nickname': 'xxx', 'role': 'owner', 'sex': 'unknown', 'title': '头衔', 'user_id': 1234567890},
         self.log(0,'adding user:['+str(U_Platform)+']('+str(U_ID)+')')
         if sender != {}:
@@ -608,17 +610,13 @@ class User(dict):
             'U_Name' : U_Name,
             'U_EnabledCard' : U_EnabledCard,
             'U_Trust' : U_Trust,
-            'U_CriticalSuccess' : U_CriticalSuccess,
-            'U_ExtremeSuccess' : U_ExtremeSuccess,
-            'U_HardSuccess' : U_HardSuccess,
-            'U_RegularSuccess' : U_RegularSuccess,
-            'U_Failure' : U_Failure,
-            'U_Fumble' : U_Fumble
+            # 'U_CriticalSuccess' : U_CriticalSuccess,
+            # 'U_ExtremeSuccess' : U_ExtremeSuccess,
+            # 'U_HardSuccess' : U_HardSuccess,
+            # 'U_RegularSuccess' : U_RegularSuccess,
+            # 'U_Failure' : U_Failure,
+            # 'U_Fumble' : U_Fumble
         }
-        # tempdict = {}
-        # for tempkey in self.jsonconf:
-        #     tempdict[tempkey] = self[Group_Platform][Group_ID][tempkey]
-        # Group_Setcoc = json.dumps(tempdict)
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
         
@@ -630,9 +628,12 @@ class User(dict):
             pre_sql =''' INSERT OR REPLACE INTO user_%d_%d('user_key','val_1','val_2') VALUES ('card-0','用户标准人物卡','{"_null" : -1}');'''%(U_Platform,U_ID)
             SQL_conn.cursor.execute(pre_sql)
             #print('### trying to insert user')
-            pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
+        #     pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
+        # VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
+            pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust')
         VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
-            SQL_conn.cursor.execute(pre_sql,(U_Platform,U_ID,U_Name,U_EnabledCard,U_Trust,U_CriticalSuccess,U_ExtremeSuccess,U_HardSuccess,U_RegularSuccess,U_Failure,U_Fumble))
+            # SQL_conn.cursor.execute(pre_sql,(U_Platform,U_ID,U_Name,U_EnabledCard,U_Trust,U_CriticalSuccess,U_ExtremeSuccess,U_HardSuccess,U_RegularSuccess,U_Failure,U_Fumble))
+            SQL_conn.cursor.execute(pre_sql,(U_Platform,U_ID,U_Name,U_EnabledCard,U_Trust))
             #print('### trying to commit')
             SQL_conn.connection.commit()
             if SQL_conn.connection.total_changes == 0:
@@ -651,21 +652,24 @@ class User(dict):
         #if key not in self.jsonconf:
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
-        pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
-        VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
+        pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust')
+        VALUES(?,?,?,?,?);'''
+        # pre_sql = '''INSERT OR REPLACE INTO USER_CONF ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
+        # VALUES(?,?,?,?,?,?,?,?,?,?,?);'''
         U_Platform = self[platform][user_id]['U_Platform']
         U_Name = self[platform][user_id]['U_Name']
         U_EnabledCard = self[platform][user_id]['U_EnabledCard']
         U_Trust = self[platform][user_id]['U_Trust']
-        U_CriticalSuccess = self[platform][user_id]['U_CriticalSuccess']
-        U_ExtremeSuccess = self[platform][user_id]['U_ExtremeSuccess']
-        U_HardSuccess = self[platform][user_id]['U_HardSuccess']
-        U_RegularSuccess = self[platform][user_id]['U_RegularSuccess']
-        U_Failure = self[platform][user_id]['U_Failure']
-        U_Fumble = self[platform][user_id]['U_Fumble']
+        # U_CriticalSuccess = self[platform][user_id]['U_CriticalSuccess']
+        # U_ExtremeSuccess = self[platform][user_id]['U_ExtremeSuccess']
+        # U_HardSuccess = self[platform][user_id]['U_HardSuccess']
+        # U_RegularSuccess = self[platform][user_id]['U_RegularSuccess']
+        # U_Failure = self[platform][user_id]['U_Failure']
+        # U_Fumble = self[platform][user_id]['U_Fumble']
         cur = SQL_conn.connection.cursor()
         try:
-            cur.execute(pre_sql,(U_Platform,user_id,U_Name,U_EnabledCard,U_Trust,U_CriticalSuccess,U_ExtremeSuccess,U_HardSuccess,U_RegularSuccess,U_Failure,U_Fumble))
+            # cur.execute(pre_sql,(U_Platform,user_id,U_Name,U_EnabledCard,U_Trust,U_CriticalSuccess,U_ExtremeSuccess,U_HardSuccess,U_RegularSuccess,U_Failure,U_Fumble))
+            cur.execute(pre_sql,(U_Platform,user_id,U_Name,U_EnabledCard,U_Trust))
             SQL_conn.connection.commit()
             cur.close()
             if SQL_conn.connection.total_changes == 0:
