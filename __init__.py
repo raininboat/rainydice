@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.3-alpha.001' 
-explain='添加防撤回功能，详见 readme.md'
+version = '0.3.3-alpha.002' 
+explain='更新 README 文件，详见源码仓库：\n https://gitee.com/thunderain_zhou/rainydice/tree/main '
 
 author = 'RainyZhou'
 import rainydice.main
