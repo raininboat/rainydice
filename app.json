@@ -1,11 +1,16 @@
 {
     "name" : "RainyDice",
-    "namespace" : "RainyDice",
+    "namespace" : "rainydice",
     "priority" : 20000,
     "support" : [
         {
             "sdk" : "onebot",
             "platform" : "qq",
+            "model" : "all"
+        },
+        {
+            "sdk" : "telegram_poll",
+            "platform" : "telegram",
             "model" : "all"
         }
     ]    

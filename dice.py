@@ -722,9 +722,9 @@ class rolldice(object):
                         receiver = [(RainyDice.user[platform][user_id]['U_Name'],str(user_id)+"@qq.com")]
                         status = rainydice.sendemail.send_email(RainyDice.bot.data,log_path,receiver)
                         if status:
-                            reply = '发送log至邮箱成功！'
+                            reply = '发送log至邮箱成功！请前往发送者账号的qq邮箱获取（如果找不到就去垃圾邮件中寻找）'
                         else:
-                            reply = '发送log至邮箱失败！'
+                            reply = '发送log至邮箱失败！请联系管理员获取log！\n文件：'+log_path+'*.*'
                     else:
                         reply = '未完成qq以外平台的email发送，请联系管理员获取log！\n文件：'+log_path+'*.*'
                 else:

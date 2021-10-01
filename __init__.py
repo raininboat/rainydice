@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.4-alpha.001' 
-explain='完成 system state 系统状态获取，bug fix'
+version = '0.3.4-alpha.002' 
+explain='更新log发送回复'
 
 author = 'RainyZhou'
 import rainydice.main

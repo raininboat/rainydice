@@ -81,11 +81,11 @@ class GlobalVal(object):
         'nnReply' : '已将{User_Name}的用户名称改为：{New_Name}',
         'OnlyInGroup' : '该指令只能在群聊中使用！',
         'setcocReply' : '群聊房规属性已改为{setcoc}:\n{setcocExplain}',
-        'logAlreadyOn' : 'logAlreadyOn',
-        'logAlreadyOff' : 'logAlreadyOff',
-        'logOnReply' : 'logOnReply',
-        'logOffReply' : 'logOffReply',
-        'logEndReply' : 'logEndReply'
+        'logAlreadyOn' : '当前log已开启',
+        'logAlreadyOff' : '当前log已经关闭',
+        'logOnReply' : 'log记录开启！请使用.log off 暂停 或 .log end 结束并发送log至邮箱',
+        'logOffReply' : 'log已关闭',
+        'logEndReply' : 'log完成，正在生成文件并发送'
         
     }
     GlobalVal = {
