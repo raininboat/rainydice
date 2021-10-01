@@ -47,13 +47,13 @@ class Dice(object):
         self.sql_path = Data_Path + '/RainyDice.db'
         self.data_path = Data_Path
         self.log = log
+        self.basic = basic_info(Data_Path,log = log)
         self.ignore = ignore
         self.cocRankCheck = cocRankCheck
         self.bot = bot(Data_Path,log = log)
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
-        self.basic = basic_info(sql_path=self.sql_path,log = log)
         self.chat_log = chat_log(Data_path=self.data_path,log=log,bot=self.bot)
 
 class chat_log(object):
@@ -193,7 +193,8 @@ class chat_log(object):
         return status,log_path
 
 class basic_info(object):
-    def __init__(self,sql_path,log):
+    def __init__(self,path,log):
+        sql_path = path + '/RainyDice.db'
         SQL_conn = SQL(sql_path)
         pre_sql = '''CREATE TABLE IF NOT EXISTS basic_info( 'basic_key' Text primary key NOT NULL UNIQUE ,'basic_val' text);'''
         SQL_conn.cursor.execute(pre_sql)
@@ -217,13 +218,11 @@ class basic_info(object):
             self.create_time = data['create_time']
         self.sql_path = sql_path
         if self.version.fullversion != version:
-            status,logstr = versionAdapter.version_updater(sql_path,self.version.fullversion)
+            status= versionAdapter.version_updater(path,self.version.fullversion,log)
             if status:
-                log(logstr[0],logstr[1])
                 self.version=versionAdapter.diceversion(version)
             else:
-                log(logstr[0],logstr[1])
-                raise UserWarning(logstr[1])
+                raise UserWarning('RainyDice版本升级错误！脚本版本: '+version+'，存档版本: '+self.version.fullversion)
 
 class bot(object):
     def __init__(self,Data_Path,log):
@@ -306,10 +305,10 @@ class bot(object):
         0
     ],
     "qq_master": 0,
-    "tg_admin": [
+    "telegram_admin": [
         0
     ],
-    "tg_master": 0
+    "telegram_master": 0
 }
 '''
         f_conf.write(default_conf)
@@ -334,14 +333,18 @@ class bot(object):
         0
     ],
     "qq_master": 0,
-    "tg_admin": [
+    "telegram_admin": [
         0
     ],
-    "tg_master": 0
+    "telegram_master": 0
 }
         return conf
 
     def set(self, key=None, value=None):      # 设置bot属性一律用这个(可以进行连接同步)，读取属性可以直接看 self.data['key'] admin等json数据除外
+        '''
+        存储属性至json中，
+        key + val填写则自动添加这一键值对（用于适配以前sql的用法）
+        '''
         if key != None:
             self.data[key] = value  
         data = self.data

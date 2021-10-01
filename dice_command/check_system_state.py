@@ -99,6 +99,11 @@ def CpuPercent(interval=None):
     为 None 则返回自上次使用后的结果（第一次恒为0）
     '''
     return __CpuPercent(interval=interval)
+
+# ------------ #
+# 内部 api 实现 #
+# ------------ #
+
 class __CpuPercent(object):
     def __init__(self,interval):
         self.percent = psutil.cpu_percent(interval=interval)

@@ -38,7 +38,7 @@ from rainydice.diceClass import Dice
 from rainydice.cocRankCheckDefault import create_cocRankCheck
 from rainydice import dice_command
 import json
-global RainyDice
+# global RainyDice
 class Event(object):
     # 初始化
     def init(plugin_event, Proc):       # plugin_models_tmp.main.Event.init(plugin_event = None, Proc = self) 
@@ -240,6 +240,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
     def func_reply(reply:str,isLogOn=False):
         '直接回复消息，同时记录log'
         plugin_event.reply(reply)
+        Proc.log(0,'[RainyDice]reply:'+reply)
         if isLogOn:
             log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
             if 0 in dict.keys(RainyDice.group[Group_Platform][Group_ID]['log']):
@@ -258,7 +259,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
         if message == 'ra' or message == 'rc':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('ra'))
         else:
-            message=message[2:].rstrip()
+            message=message[2:].strip()
             # 返回 (状态码(判断是否正常，或错误类型，目前没搞只是留好接口),是否为多处回复（T/F）,单回复信息或(('reply',message),('send',target_type,target_id,message),...))
             status,isMultiReply ,reply = rd.RA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
@@ -267,7 +268,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
         if message == 'sc':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('sc'))
         else:
-            message=message[2:].rstrip()
+            message=message[2:].strip()
             # 返回 (状态码,是否为多处回复（T/F）,单回复信息或(('reply',message),('send',target_type,target_id,message),...))
             status,isMultiReply ,reply = rd.SC(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
@@ -333,9 +334,33 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
     elif message.startswith('master'):
-        pass
+        if message == 'master':
+            if User_ID == RainyDice.bot.data[plugin_event.platform['platform']+'_master']:
+                reply = '您已是{botname}的master！'.format(botname=RainyDice.bot.data['name'])
+                func_reply(isLogOn=isLogOn,reply=reply)
+                # master本人发送.master
+            elif RainyDice.bot.data[plugin_event.platform['platform']+'_master'] == 0:
+                RainyDice.bot.data[plugin_event.platform['platform']+'_master'] = User_ID
+                RainyDice.bot.set()
+                reply = '已将您设置成为{botname}的master'.format(botname=RainyDice.bot.data['name'])
+                func_reply(isLogOn=isLogOn,reply=reply)
+            else:
+                reply = RainyDice.GlobalVal.getGlobalMsg('authorationFailed')
+                func_reply(isLogOn=isLogOn,reply=reply)
+        else:
+            pass            
+        return 1
     elif message.startswith('admin'):
-        pass
+        if message == 'admin':
+            if User_ID in RainyDice.bot.data[plugin_event.platform['platform']+'_admin'] == 0:
+                reply = '您已是{botname}的admin！'.format(botname=RainyDice.bot.data['name'])
+                func_reply(isLogOn=isLogOn,reply=reply)
+            else:
+                reply = RainyDice.GlobalVal.getGlobalMsg('authorationFailed')
+                func_reply(isLogOn=isLogOn,reply=reply)
+        else:
+            pass
+        return 1
     elif message.startswith('log'):
         if Group_ID == 0 or message == 'log':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('log'))
@@ -345,7 +370,12 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
     elif message.startswith('help'):
-        pass
+        if message == 'help':
+            func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('help'))
+        else:
+            message = message[4:].strip()
+            func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc(message))
+        return 1
     elif message.startswith('version'):
         reply = 'RainyDice Version: \n'+RainyDice.basic.version.fullversion+'\n'+explain
         func_reply(isLogOn=isLogOn,reply=reply)

@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.4-alpha.002' 
-explain='更新log发送回复'
+version = '0.3.5-alpha.1' 
+explain='更新bot.json存储方式，完成master设置（只是目前设置了也没有用处）'
 
 author = 'RainyZhou'
 import rainydice.main

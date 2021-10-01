@@ -6,7 +6,7 @@
     /_/|_/_/ |_/___/_/|_/   /_/  
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
-    版本号控制实现
+    版本号控制实现，升级补丁
 
     Copyright (C) 2021  RainyZhou  
                         Email: thunderain_zhou@163.com
@@ -29,22 +29,33 @@
 '''
 from rainydice import version
 import sqlite3
+import json
 
-def version_updater(sqlpath,sqlversionFull):
-    scriptVersionFull = version
+def version_updater(datapath,sqlversionFull,log):
     scriptVersion = diceversion(version)
     sqlVersion = diceversion(sqlversionFull)
-    sqlpath = sqlpath
+    sqlpath = datapath + '/RainyDice.db'
     # 当主要版本号发生改变时不适配
     if scriptVersion.major > sqlVersion.major:
-        return False,(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+sqlversionFull)
+        log(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+sqlversionFull)
+        return False
     # 次要版本号逻辑
     if scriptVersion.minor > sqlVersion.minor:
-        return False,(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+sqlversionFull)
+        log(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+sqlversionFull)
+        return False
     if scriptVersion.micro > sqlVersion.micro or scriptVersion.releaseversion != sqlVersion.releaseversion:
+        if sqlVersion.lessthan(0,3,4):
+            # 0.3.4 => 0.3.5 版本升级
+            # 将 bot.conf 中 tg_admin tg_master 转为 telegram_admin telegram_master
+            status = __update_0_3_4(datapath)
+            if status:
+                log(2,'完成 0.3.4 => 0.3.5 版本升级，内容：bot.json转换')
         __sqlversionWrite(sqlpath,version)
-        return True,(2,'当前脚本版本：'+version+'，存档版本：'+sqlversionFull+' , 自动完成升级')
-    return False , (4,'未知情况！当前脚本版本：'+version+'，存档版本：'+sqlversionFull)    
+        log(2,'当前脚本版本：'+version+'，存档版本：'+sqlversionFull+' , 已完成升级')
+        return True
+    log(4,'未知情况！当前脚本版本：'+version+'，存档版本：'+sqlversionFull)
+    return False
+
 class diceversion(object):
     def __init__(self,version):
         self.fullversion = version
@@ -61,6 +72,15 @@ class diceversion(object):
         self.major = int(versionlist[0])
         self.minor = int(versionlist[1])
         self.micro = int(versionlist[2])
+    def lessthan(self,major,minor,micro):
+        '版本号 <= 目标值'
+        if self.major>major:
+            return False
+        elif self.minor > minor:
+            return False
+        elif self.micro > micro:
+            return False 
+        return True
 
 def __sqlversionWrite(sqlpath,version):
     conn = __SQL(sqlpath)
@@ -76,3 +96,18 @@ class __SQL(object):
     def __del__(self):
         self.cursor.close()
         self.connection.close()
+
+def __update_0_3_4(path):
+    # 0.3.4 => 0.3.5 版本升级
+    # 将 bot.conf 中 tg_admin tg_master 转为 telegram_admin telegram_master
+    botconfPath = path + '/conf/bot.json'
+    with open(botconfPath, 'r+', encoding = 'utf-8') as file:
+        botconfjson = file.read()
+        file.seek(0,0)
+        botconf = json.loads(botconfjson)
+        botconf['telegram_admin'] = botconf['tg_admin']
+        botconf['telegram_master'] = botconf['tg_master']
+        del botconf['tg_admin'] , botconf['tg_master']
+        botconfjson = json.dumps(botconf,ensure_ascii=False,indent='    ',sort_keys=True)
+        file.write(botconfjson)
+    return True    

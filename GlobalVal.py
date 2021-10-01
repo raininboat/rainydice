@@ -85,8 +85,8 @@ class GlobalVal(object):
         'logAlreadyOff' : '当前log已经关闭',
         'logOnReply' : 'log记录开启！请使用.log off 暂停 或 .log end 结束并发送log至邮箱',
         'logOffReply' : 'log已关闭',
-        'logEndReply' : 'log完成，正在生成文件并发送'
-        
+        'logEndReply' : 'log完成，正在生成文件并发送',
+        'authorationFailed' : '你没有本权限！'       
     }
     GlobalVal = {
         'rankName' : ["【未知情况】","大成功","极难成功","困难成功","成功","失败","大失败"],

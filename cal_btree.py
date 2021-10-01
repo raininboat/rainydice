@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-from random import randint
-class BTree(object):
+from random import randint as __randint
+class __BTree(object):
     def __init__(self,data = None):
         self.data = data
         self.left = None
@@ -107,7 +107,7 @@ class BTree(object):
 
 
 
-def split(string:str):
+def __split(string:str):
     splitData = []
     sign = (
         '+','-','*','/','(',')',
@@ -167,7 +167,7 @@ def split(string:str):
     if len(splitData) > MaxSplit:
         raise UserWarning('Split_Too_Much','表达式过长或过复杂:当前分片数量['+str(len(splitData))+']')
     return splitData
-def RPNchange(Input):
+def __RPNchange(Input):
     # 符号优先级
     calsign = {
         '$' : 0 , '(' : 0,
@@ -182,7 +182,7 @@ def RPNchange(Input):
     tmp = ''
     for tmp in Input:
         if str.isdecimal(tmp):
-            tmp_tree = BTree(int(tmp))
+            tmp_tree = __BTree(int(tmp))
             calculate.append(tmp_tree)
         elif tmp == '(':
             sign.append('(')
@@ -195,7 +195,7 @@ def RPNchange(Input):
                 while calsign[tmp] <= calsign[lastSign]:
                     #calculate.append(sign.pop())
                     tmp_sign = sign.pop()
-                    tmp_tree = BTree(tmp_sign)
+                    tmp_tree = __BTree(tmp_sign)
                     tmp_tree.insert_right(calculate.pop())
                     tmp_tree.insert_left(calculate.pop())
                     calculate.append(tmp_tree)
@@ -210,7 +210,7 @@ def RPNchange(Input):
                     raise(Exception,'符号不匹配！')
                 # calculate.append(sign.pop())
                 tmp_sign = sign.pop()
-                tmp_tree = BTree(tmp_sign)
+                tmp_tree = __BTree(tmp_sign)
                 tmp_tree.insert_right(calculate.pop())
                 tmp_tree.insert_left(calculate.pop())
                 calculate.append(tmp_tree)
@@ -222,7 +222,7 @@ def RPNchange(Input):
                     raise(Exception,'四则运算表达式错误!')
                 # calculate.append(sign.pop())
                 tmp_sign = sign.pop()
-                tmp_tree = BTree(tmp_sign)
+                tmp_tree = __BTree(tmp_sign)
                 tmp_tree.insert_right(calculate.pop())
                 tmp_tree.insert_left(calculate.pop())
                 calculate.append(tmp_tree)
@@ -232,7 +232,7 @@ def RPNchange(Input):
             raise(Exception,'四则运算表达式错误！')
         # calculate.append(sign.pop())
         tmp_sign = sign.pop()
-        tmp_tree = BTree(tmp_sign)
+        tmp_tree = __BTree(tmp_sign)
         tmp_tree.insert_right(calculate.pop())
         tmp_tree.insert_left(calculate.pop())
         calculate.append(tmp_tree)
@@ -243,7 +243,7 @@ def RPNchange(Input):
 # diceSide 投掷面数
 # diceMax 取最大的数量(k)
 # diceMin 取最小的数量(q)
-def diceRoll(diceCount,diceSides,diceMax=None,diceMin=None):
+def __diceRoll(diceCount,diceSides,diceMax=None,diceMin=None):
     # print(diceCount,diceSides,diceMax,diceMin)
     MaxDice = 9999      # 最多面数、最多投掷个数
 
@@ -256,7 +256,7 @@ def diceRoll(diceCount,diceSides,diceMax=None,diceMin=None):
         rollStep = []
         rolltmp = 0
         for j in range(diceCount):
-            rolltmp = randint(1,diceSides)
+            rolltmp = __randint(1,diceSides)
             rollStep.append(rolltmp)
             step = step + str(rolltmp)+','
         step = step[:-1]+'}['
@@ -271,7 +271,7 @@ def diceRoll(diceCount,diceSides,diceMax=None,diceMin=None):
         rollStep = []
         rolltmp = 0
         for j in range(diceCount):
-            rolltmp = randint(1,diceSides)
+            rolltmp = __randint(1,diceSides)
             rollStep.append(rolltmp)
             step = step + str(rolltmp)+'+'
         step = step[:-1]+'}['
@@ -285,7 +285,7 @@ def diceRoll(diceCount,diceSides,diceMax=None,diceMin=None):
         step = '{'
         rollStep= []
         for j in range(diceCount):
-            rolltmp = randint(1,diceSides)
+            rolltmp = __randint(1,diceSides)
             rollStep.append(rolltmp)
             step = step + str(rolltmp)+'+'
         step = step[:-1]+'}('
@@ -296,8 +296,8 @@ def diceRoll(diceCount,diceSides,diceMax=None,diceMin=None):
     return rollResult,step
 # times 重复次数
 # num 惩罚骰个数
-def dicePunish(times=1,num=1):
-    print(times,num)
+def __dicePunish(times=1,num=1):
+    # print(times,num)
     MaxDice = 9999
     if num == 0 or times == 0:
         raise (UserWarning('Zero_Dice_Error','投掷个数不能为0'))
@@ -306,9 +306,9 @@ def dicePunish(times=1,num=1):
     if times == 1:
         rollStep = []
         ten = 0
-        one = randint(0,9)
+        one = __randint(0,9)
         for j in range(num+1):
-            rollStep.append(randint(0,9))
+            rollStep.append(__randint(0,9))
             if rollStep[j] > ten :
                 ten = rollStep[j]
             elif one == 0 and rollStep[j] == 0 :
@@ -331,9 +331,9 @@ def dicePunish(times=1,num=1):
         for i in range(times):
             rollStep = []
             ten = 0
-            one = randint(0,9)
+            one = __randint(0,9)
             for j in range(num+1):
-                rollStep.append(randint(0,9))
+                rollStep.append(__randint(0,9))
                 if rollStep[j] > ten :
                     ten = rollStep[j]
                 elif one == 0 and rollStep[j] == 0 :
@@ -355,8 +355,8 @@ def dicePunish(times=1,num=1):
         return totalResult,totalStep
 # times 重复次数
 # num 奖励骰个数
-def diceBonus(times=1,num=1):
-    print(times,num)
+def __diceBonus(times=1,num=1):
+    # print(times,num)
     MaxDice = 9999
     if num == 0 or times == 0:
         raise (UserWarning('Zero_Dice_Error','投掷个数不能为0'))
@@ -365,9 +365,9 @@ def diceBonus(times=1,num=1):
     if times == 1:
         rollStep = []
         ten = 10
-        one = randint(0,9)
+        one = __randint(0,9)
         for j in range(num+1):
-            rollStep.append(randint(0,9))
+            rollStep.append(__randint(0,9))
             if one == 0 and rollStep[j] == 0 :
                 ten = 10
                 rollStep[j] = 10
@@ -390,9 +390,9 @@ def diceBonus(times=1,num=1):
         for i in range(times):
             rollStep = []
             ten = 10
-            one = randint(0,9)
+            one = __randint(0,9)
             for j in range(num+1):
-                rollStep.append(randint(0,9))
+                rollStep.append(__randint(0,9))
                 if one == 0 and rollStep[j] == 0 :
                     ten = 10
                     rollStep[j] = 10
@@ -418,8 +418,8 @@ def diceBonus(times=1,num=1):
 # diceAdd 加骰线(B)
 # dicesuccess 成功线(C)
 # diceSides 面数(D)
-def dicePool(diceCount=1,diceAdd=10,diceSuccess=8,diceSides=10):
-    print(diceCount,diceAdd,diceSuccess,diceSides)
+def __dicePool(diceCount=1,diceAdd=10,diceSuccess=8,diceSides=10):
+    # print(diceCount,diceAdd,diceSuccess,diceSides)
     diceMax = 9999
     if diceAdd > diceMax or diceCount > diceMax or diceSuccess > diceMax or diceSides > diceMax:
         raise (UserWarning('Roll_Too_Big','投掷次数或单个面数过大'))
@@ -433,7 +433,7 @@ def dicePool(diceCount=1,diceAdd=10,diceSuccess=8,diceSides=10):
         thisPool = 0
         step = step +'{'
         for i in range(tmpPool):
-            roll = randint(1,diceSides)
+            roll = __randint(1,diceSides)
             if roll >= diceAdd:
                 step = step +'<'
                 thisPool = thisPool +1
@@ -455,7 +455,7 @@ def dicePool(diceCount=1,diceAdd=10,diceSuccess=8,diceSides=10):
 
 
 # 计算模块
-def RPNcal(cal):
+def __RPNcal(cal):
     a = []
     x = 0
     y = 0
@@ -481,7 +481,7 @@ def RPNcal(cal):
                 a.append((va,'da'))
                 a.append((vb,'db'))
             else:
-                result,tmpstep = diceRoll(diceCount=va,diceSides=vb)
+                result,tmpstep = __diceRoll(diceCount=va,diceSides=vb)
                 a.append((result,tmpstep))
         elif data == 'q':
             vc ,stepa = a.pop()
@@ -490,7 +490,7 @@ def RPNcal(cal):
             dd ,stepa = a.pop()
             if dd != 'd':
                 raise(UserWarning('Roll_Exp_Invalid','投掷表达式不完整'))
-            result,tmpstep = diceRoll(diceCount=va,diceSides=vb,diceMin=vc)
+            result,tmpstep = __diceRoll(diceCount=va,diceSides=vb,diceMin=vc)
             a.append((result,tmpstep))
         elif data == 'k':
             vc , stepa = a.pop()
@@ -498,7 +498,7 @@ def RPNcal(cal):
             va , stepa = a.pop()
             dd , stepa = a.pop()
             if dd == 'd':
-                result,tmpstep = diceRoll(diceCount=va,diceSides=vb,diceMax=vc)
+                result,tmpstep = __diceRoll(diceCount=va,diceSides=vb,diceMax=vc)
                 a.append((result,tmpstep))
             elif dd == 'a':
                 if tmp_tree.get_parent_data() == 'm' and tmp_tree.parent.left is tmp_tree:
@@ -507,7 +507,7 @@ def RPNcal(cal):
                     a.append((vb,'pb'))
                     a.append((vc,'pc'))
                 else:
-                    result,tmpstep = dicePool(diceCount=va,diceAdd=vb,diceSuccess=vc)
+                    result,tmpstep = __dicePool(diceCount=va,diceAdd=vb,diceSuccess=vc)
                     a.append((result,tmpstep))
             else:
                 raise(UserWarning('Roll_Exp_Invalid','投掷表达式不完整'))
@@ -519,7 +519,7 @@ def RPNcal(cal):
                 a.append((va,'pa'))
                 a.append((vb,'pb'))
             else:
-                result,tmpstep = dicePool(diceCount=va,diceAdd=vb)
+                result,tmpstep = __dicePool(diceCount=va,diceAdd=vb)
                 a.append((result,tmpstep))
         elif data == 'm':
             vd ,stepa = a.pop()
@@ -532,7 +532,7 @@ def RPNcal(cal):
                 dd , stepa = a.pop()
                 if dd != 'a':
                     raise(UserWarning('Roll_Exp_Invalid','投掷表达式不完整'))
-                result,tmpstep = dicePool(diceCount=va,diceAdd=vb,diceSuccess=vc,diceSides=vd)
+                result,tmpstep = __dicePool(diceCount=va,diceAdd=vb,diceSuccess=vc,diceSides=vd)
                 a.append((result,tmpstep))
             elif stepa == 'pb':
                 vb = vt
@@ -540,19 +540,19 @@ def RPNcal(cal):
                 dd , stepa = a.pop()
                 if dd != 'a':
                     raise(UserWarning('Roll_Exp_Invalid','投掷表达式不完整'))
-                result,tmpstep = dicePool(diceCount=va,diceAdd=vb,diceSides=vd)
+                result,tmpstep = __dicePool(diceCount=va,diceAdd=vb,diceSides=vd)
                 a.append((result,tmpstep))
             else:
                 raise(UserWarning('Roll_Exp_Invalid','投掷表达式不完整'))
         elif data == 'p':
             vb ,stepb = a.pop()
             va ,stepa = a.pop()
-            result,tmpstep = dicePunish(times=va,num=vb)
+            result,tmpstep = __dicePunish(times=va,num=vb)
             a.append((result,tmpstep))
         elif data == 'b':
             vb ,stepb = a.pop()
             va ,stepa = a.pop()
-            result,tmpstep = diceBonus(times=va,num=vb)
+            result,tmpstep = __diceBonus(times=va,num=vb)
             a.append((result,tmpstep))
         ################################# 正常四则运算
         elif data == '+':
@@ -607,10 +607,10 @@ def RPNcal(cal):
 
 def calculate(string:str):
     try:
-        splitdata = split(string)
+        splitdata = __split(string)
         # print(splitdata)
-        cal = RPNchange(splitdata)
-        result , step = RPNcal(cal)
+        cal = __RPNchange(splitdata)
+        result , step = __RPNcal(cal)
         return True,result ,step
     except UserWarning as err:
         a,b = err.args
@@ -619,6 +619,6 @@ def calculate(string:str):
     except Exception as err:
         return False ,'', err.__str__()
 # if __name__ == '__main__':
-#     string = '3+100d1/0'
+#     string = '3+100d1/01'
 #     print(calculate(string))
 
