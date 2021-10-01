@@ -6,6 +6,7 @@
     /_/|_/_/ |_/___/_/|_/   /_/  
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
+        骰娘模块化实现
 
     Copyright (C) 2021  RainyZhou  
                         Email: thunderain_zhou@163.com
@@ -26,13 +27,4 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.4-alpha.001' 
-explain='完成 system state 系统状态获取，bug fix'
-
-author = 'RainyZhou'
-import rainydice.main
-import rainydice.dice
-import rainydice.GlobalVal
-# import rainydice.calculate
-# import rainydice.diceClass
-
+from rainydice.dice_command import check_system_state

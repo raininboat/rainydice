@@ -28,15 +28,15 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-# import OlivOS
-from rainydice import explain
 import os
 import time
-# from plugin.app import rainydice
 import sys
+# import OlivOS
+from rainydice import explain
 from rainydice.dice import rolldice
 from rainydice.diceClass import Dice
 from rainydice.cocRankCheckDefault import create_cocRankCheck
+from rainydice import dice_command
 import json
 global RainyDice
 class Event(object):
@@ -62,13 +62,14 @@ class Event(object):
         pass
     # onebot框架heartbeat
     def heartbeat(plugin_event, Proc):
-        heartbeat_reply(plugin_event,Proc)
-        pass
+        # 每次heartbeat检测当前cpu使用情况
+        if dice_command.check_system_state.CpuPercent().percent >=90:
+            Proc.log(3,'cpu 当前使用百分比超90%！')
+        # heartbeat_reply(plugin_event,Proc)
     def group_file_upload(plugin_event, Proc):
         pass
     def group_message_recall(plugin_event, Proc):
         group_message_recall_reply(plugin_event, Proc)
-        pass
 
 def bot_init(plugin_event,proc):
     OlivOS_Path = sys.path[0]
@@ -104,6 +105,7 @@ def bot_init(plugin_event,proc):
     else:
         cocRankCheck=create_cocRankCheck(Data_Path+'/conf/rankcheck.py')
         proc.log(2,'RainyDice配置文件 rankcheck.py 不存在，即将新建...')
+    dice_command.check_system_state.CpuPercent()
     global RainyDice
     RainyDice = Dice(Data_Path,log=proc.log,ignore=ignore_conf,cocRankCheck=cocRankCheck)
 
@@ -235,7 +237,8 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
     Group_Platform = Platform
     rd = rolldice(RainyDice.cocRankCheck)
     message = message.strip()
-    def func_reply(reply,isLogOn=False):
+    def func_reply(reply:str,isLogOn=False):
+        '直接回复消息，同时记录log'
         plugin_event.reply(reply)
         if isLogOn:
             log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
@@ -269,47 +272,6 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             status,isMultiReply ,reply = rd.SC(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
-    elif message.startswith('rb'):
-        if message == 'rb':
-            func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('ra'))
-        else:
-            message=message[1:]
-            status,isMultiReply ,reply = rd.RA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
-        return 1
-    elif message.startswith('rp'):
-        if message == 'rb':
-            func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('ra'))
-        else:
-            message=message[1:]
-            status,isMultiReply ,reply = rd.RA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
-        return 1
-    elif message.startswith('rh'):          # 懒得写到dice里面了，直接这样吧(#被拖走)
-        if Group_ID == 0:
-            reply = RainyDice.GlobalVal.GlobalMsg['OnlyInGroup']
-            func_reply(isLogOn=isLogOn,reply=reply)
-            return 1
-        if message == 'rh':
-            message = '1d100'
-        else:
-            message = message[2:]
-        status,isMultiReply ,reply = rd.RD(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-        reply = '在['+RainyDice.group[Group_Platform][Group_ID]['Group_Name']+']('+str(Group_ID)+')中，'+ reply
-        plugin_event.send('private',User_ID,reply)
-        reply_grp = RainyDice.GlobalVal.GlobalMsg['rhGroupReply']
-        user_name = RainyDice.user[Group_Platform][User_ID]['U_Name']
-        reply_grp = str.replace(reply_grp,'[User_Name]',user_name)
-        func_reply(isLogOn=isLogOn,reply=reply_grp)
-        return 1
-    elif message.startswith('rd'):
-        if message == 'rd':
-            message = '1d100'
-        else:
-            message = '1'+message[1:]
-        status,isMultiReply ,reply = rd.RD(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-        send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
-        return 1
     elif message.startswith('st'):
         if message == 'st':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('st'))
@@ -340,10 +302,10 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             message=str.strip(message[2:])
             name = str.strip(message)
             RainyDice.user.set('U_Name',name,Group_Platform,User_ID)
-            reply = RainyDice.GlobalVal.GlobalMsg['nnReply']
-            # 'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]'
-            reply =str.replace(reply,'[User_Name]',plugin_event.data.sender['nickname'])
-            reply =str.replace(reply,'[New_Name]',name)
+            reply = RainyDice.GlobalVal.GlobalMsg['nnReply'].format(User_Name=plugin_event.data.sender['nickname'],New_Name=name)
+            # 'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]'            
+            # reply =str.replace(reply,'[User_Name]',plugin_event.data.sender['nickname'])
+            # reply =str.replace(reply,'[New_Name]',name)
             func_reply(isLogOn=isLogOn,reply=reply)
         return 1
     elif message.startswith('li'):
@@ -387,6 +349,17 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
     elif message.startswith('version'):
         reply = 'RainyDice Version: \n'+RainyDice.basic.version.fullversion+'\n'+explain
         func_reply(isLogOn=isLogOn,reply=reply)
+        return 1
+    elif message.startswith('system'):
+        if message == 'system':
+            func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('system'))
+        elif message[6:].strip().startswith('state'):
+            reply = dice_command.check_system_state.getSysState(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            func_reply(isLogOn=isLogOn,reply=reply)
+        else:
+            reply = '未完成 '+message[6:]
+            func_reply(isLogOn=isLogOn,reply=reply)
+        return 1
     else:
         return None
    

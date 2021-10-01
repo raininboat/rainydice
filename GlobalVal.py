@@ -65,7 +65,7 @@ class GlobalVal(object):
         'raReply' : '{User_Name}进行{Skill_Name}检定:\nD100 = {Result} / {Skill_Val} {Rank}',
         'rbpReply' : '{User_Name}进行{Skill_Name}检定:\nD100 = {rdResult} [{Sign}骰:{ROLL_List}] = {Result} / {Skill_Val} {Rank}',
         'rhGroupReply' : '{User_Name}进行了一次暗骰',
-        'rhPrivateReply' : '在群聊[{Group_Name}]({Group_ID})中,你进行投掷：D100 = {Result}',
+        'rhPrivateReply' : '在[{Group_Name}]({Group_ID})中,{User_Name}进行投掷:\n{DiceExp}={DiceStep}{Result}',
         'scReply' : '{User_Name}进行理智检定:\nD100 = {Roll_Result} / {Old_San} {Rank}\n理智损失: {San_Lose_Expression} = {San_Lose_Result} \n当前理智：{nowSan}',
         'scSanNull' : '理智值未输入或无效，请使用.st将其设置为正整数',
         'stDelReply' : '已将{Card_Name}的属性【{Skill_Name}】删除',

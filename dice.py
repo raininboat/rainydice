@@ -239,17 +239,22 @@ class rolldice(object):
     def RD(Self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
         maxStepLen = 200
         message = str.strip(message)
-        reobj = re.match('([\d\-\+\*/\(\)dkqpbma]+)(.*)',message,re.I)
+        isRH=False
+        if message.startswith('h'):
+            isRH=True
+            message=message[1:].strip()
+        reobj = re.match('([\d\-\+\*/\(\)dkqpbma]*)(.*)',message,re.I)
         if reobj == None:
             reply = RainyDice.GlobalVal.GlobalMsg['InputErr'] +'\n'+message
             # plugin_event.reply(reply)
             return 1 , False , reply
         dice_exp , reason = reobj.groups()
+        if dice_exp == '':
+            dice_exp = '1d100'
         status,result,step = calculate(dice_exp)
         if status == False:
             return 1 , False , step
         user_name = RainyDice.user[platform][user_id]['U_Name']
-        reply = RainyDice.GlobalVal.GlobalMsg['rdReply']            # '[User_Name]进行投掷:\n[DiceExp]=[DiceStep]=[Result]',
         replace = {
             'User_Name' : user_name,
             'DiceExp' : dice_exp
@@ -262,11 +267,23 @@ class rolldice(object):
             replace['DiceStep']=''
             #reply = str.replace(reply,'[DiceStep]=','')
         replace['Result']=str(result)
-        reply = str.format_map(reply,replace)
-        # plugin_event.reply(reply)
-        if reason != None and reason != '':
-            reply = '由于'+reason +','+reply
-        return 1 , False , reply
+        
+        if isRH and group_id != 0:
+            replace['Group_Name'] = RainyDice.group[platform][group_id]['Group_Name']
+            replace['Group_ID'] = group_id
+            rplgrp = RainyDice.GlobalVal.GlobalMsg['rhGroupReply'].format_map(replace)
+            rplpvt = RainyDice.GlobalVal.GlobalMsg['rhPrivateReply'].format_map(replace)
+            # 'rhGroupReply' : '{User_Name}进行了一次暗骰',
+            # 'rhPrivateReply' : '在群聊[{Group_Name}]({Group_ID})中,{User_Name}进行投掷:\n{DiceExp}={DiceStep}{Result}',
+            replypack = (('reply',rplgrp),('send','private',user_id,rplpvt))
+            return 2,True,replypack
+        else:
+            reply = RainyDice.GlobalVal.GlobalMsg['rdReply']            # '[User_Name]进行投掷:\n[DiceExp]=[DiceStep]=[Result]',
+            reply = str.format_map(reply,replace)
+            # plugin_event.reply(reply)
+            if reason != None and reason != '':
+                reply = '由于'+reason +','+reply
+            return 1 , False , reply
     def SC(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
         if message.find('/') == -1:
             reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
