@@ -32,6 +32,7 @@ from rainydice import GlobalVal
 from rainydice import version,author
 from rainydice.msgesacpe import messageEscape
 import rainydice.versionAdapter as versionAdapter
+from rainydice.dice_command import log_docx_create
 # from rainydice.main import RainyDice
 #from data.rainydice import *
 import json
