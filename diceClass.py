@@ -32,7 +32,7 @@ from rainydice import GlobalVal
 from rainydice import version,author
 from rainydice.msgesacpe import messageEscape
 import rainydice.versionAdapter as versionAdapter
-from rainydice.dice_command import log_docx_create
+from rainydice.dice_command import log_create
 # from rainydice.main import RainyDice
 #from data.rainydice import *
 import json
@@ -108,89 +108,61 @@ class chat_log(object):
         except Exception as err:
             self.proc_log(3,'log失败！sql: '+pre_sql+' ; err: '+err.__str__())
             SQL_conn.connection.rollback()
-    def __logline(self,log_dict:dict):
-        strkey = ('User_Name','User_Text','Group_Name')
-        line = {}
-        log_time_arr = time.localtime(log_dict['Log_Time'])
-        log_dict['Time'] = time.strftime('%Y-%m-%d %H:%M:%S',log_time_arr)
-        log_dict['Time_Short'] = time.strftime('%H:%M:%S',log_time_arr)
-        log_dict['detext'] = messageEscape.htmlunescape(log_dict['User_Text'])
-        log_dict['dename'] = messageEscape.htmlunescape(log_dict['User_Name'])
-        line['txt'] = '''{dename}({User_ID:d}) {Time}\n{detext}\n\n'''.format_map(log_dict)
-        text_lst = str.splitlines(log_dict['detext'],keepends=False)
-        # 获取当前log行染色颜色的编号
-        colorid = self.colorid[log_dict['user_color_id']%len(self.colorid)]
-        htmllst = []
-        # print(log_dict)
-        for txt in text_lst:
-            htmllst.append('''\
-<span style="color: #C0C0C0;font-size: 1.5">{time}</span>
-<span style="color: {color};font-size: 1.5">&lt;{name}&gt; {text}</span>
-<br/>
-'''.format(time=log_dict['Time_Short'],color=colorid,name=messageEscape.htmlescape(log_dict['dename']),text=messageEscape.htmlescape(txt)))
-        # print(htmllst)
-        line['html'] = ''.join(htmllst)
-        if self.logconf['csv']:
-            log_dict_fm = log_dict.copy()
-            for i in strkey:
-                log_dict_fm[i] = str.replace(log_dict[i],'"','""')
-            line['csv'] = messageEscape.htmlunescape('''"{ID:d}","{Platform:d}","{User_ID:d}","{User_Name}","{User_Text}","{Log_Time}","{Group_ID:d}","{Group_Name}"\n'''.format_map(log_dict_fm))
-            del log_dict_fm
-        # print(line)
-        return line
+    
     def end(self,log_name):
         SQL_conn = SQL(self.sql_path)
         pre_sql = '''SELECT * FROM {log_name}'''.format(log_name=log_name)
         log_path = self.log_path+log_name+'/'
+        if not os.path.exists(log_path):
+            os.mkdir(log_path)
+        if self.logconf['csv']:
+            log_csv = log_create.LogCsv(log_path)
+        if self.logconf['html']:
+            log_html = log_create.LogHtml(log_path)
+        if self.logconf['doc']:
+            log_doc = log_create.LogDocx(log_path)
+        if self.logconf['txtRaw']:
+            log_txtRaw = log_create.LogTxtRaw(log_path)
+
         try:
-            if not os.path.exists(log_path):
-                os.mkdir(log_path)
-            txt_file = open(log_path+'log_raw.txt', 'w', encoding = 'utf-8',errors='ignore')
-            html_file = open(log_path+'log.html', 'w', encoding = 'utf-8',errors='ignore')
-            html_file.write(self.htmlhead)
-            if self.logconf['csv']:
-                csv_file = open(log_path+'log_form.csv', 'w', encoding = 'utf-8-sig',errors='ignore')
-                csv_file.write(self.csvinit)
-            if self.logconf['doc']:
-                pass
             SQL_conn.cursor.execute(pre_sql)
             temp = SQL_conn.cursor.fetchall()
             # print(temp)
             if temp != []:
                 user_list = []
                 for line in temp:
-                    line_dict = {}
-                    for i in range(len(self.key)):
-                        line_dict[self.key[i]] = line[i]
-                    if line_dict['User_ID'] in user_list:
-                        line_dict['user_color_id'] = user_list.index(line_dict['User_ID'])
+                    thisline=log_create.LogLine(line)
+                    if thisline.id in user_list:
+                        color_id=user_list.index(thisline.id)
                     else:
-                        line_dict['user_color_id'] = len(user_list)
-                        user_list.append(line_dict['User_ID'])
-                    logline_dict = self.__logline(log_dict=line_dict)
-                    txt_file.write(logline_dict['txt'])
-                    html_file.write(logline_dict['html'])
+                        color_id = len(user_list)
+                        user_list.append(thisline.id)
                     if self.logconf['csv']:
-                        csv_file.write(logline_dict['csv'])
+                        log_csv.logline(thisline,color_id)
+                    if self.logconf['html']:
+                        log_html.logline(thisline,color_id)
                     if self.logconf['doc']:
-                        pass
-                html_file.write(self.htmlend)
+                        log_doc.logline(thisline,color_id)
+                    if self.logconf['txtRaw']:
+                        log_txtRaw.logline(thisline,color_id)
                 pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
                 SQL_conn.cursor.execute(pre_sql)
                 SQL_conn.connection.commit()
                 status = True
-        except Exception as err:
+        except sqlite3.Error as err:
             self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
             SQL_conn.connection.rollback()
             status = False
             log_path = 'log end失败！err: '+err.__str__()
         finally:
-            txt_file.close()
-            html_file.close()
             if self.logconf['csv']:
-                csv_file.close()
+                log_csv.logsave()
+            if self.logconf['html']:
+                log_html.logsave()
             if self.logconf['doc']:
-                pass
+                log_doc.logsave()
+            if self.logconf['txtRaw']:
+                log_txtRaw.logsave()
         return status,log_path
 
 class basic_info(object):
@@ -247,7 +219,7 @@ class bot(object):
         
         logconf = {
             'csv' : True,
-            "txtRendered" : True,
+            "html" : False,
             "doc" : True,
             "txtRaw" : True
         }
@@ -298,7 +270,7 @@ class bot(object):
     "log": {
         "csv": false,
         "doc": true,
-        "txtRendered": true,
+        "html": false,
         "txtRaw" : true
     },
     "name": "本机器人",
@@ -326,7 +298,7 @@ class bot(object):
     "log": {
         "csv": False,
         "doc": True,
-        "txtRendered" : True,
+        "html" : False,
         "txtRaw" : True
     },
     "name": "本机器人",

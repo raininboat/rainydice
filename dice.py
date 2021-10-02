@@ -704,7 +704,7 @@ class rolldice(object):
             # log off 暂停记录
             if not RainyDice.group[platform][group_id]['isLogOn']:
                 reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
-                return 0,False,reply
+                return 0,False,reply,False
             RainyDice.group.set('isLogOn',False,platform,group_id)
             reply= RainyDice.GlobalVal.GlobalMsg['logOffReply']
             return 0,False,reply,False
@@ -715,6 +715,8 @@ class rolldice(object):
                 if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
                     RainyDice.group.del_conf('log',0,platform,group_id)
             log_name = RainyDice.group[platform][group_id]['log'][0]
+            RainyDice.group.del_conf('log',0,platform,group_id)
+            RainyDice.group.set('isLogOn',False,platform,group_id)
             status,log_path = RainyDice.chat_log.end(log_name)
             if status:
                 if RainyDice.bot.data['email']['enabled']:
@@ -729,12 +731,13 @@ class rolldice(object):
                         reply = '未完成qq以外平台的email发送，请联系管理员获取log！\n文件：'+log_path+'*.*'
                 else:
                     reply = 'email发送模块关闭，请联系管理员获取log！\n文件：'+log_path+'*.*'
-                RainyDice.group.del_conf('log',0,platform,group_id)
-                RainyDice.group.set('isLogOn',False,platform,group_id)
+                
                 # reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
             else:
                 reply = log_path
             return 0,False,reply,False
+        else:
+            return 0,False,'请检查指令',True
 
     def RECALL(self,plugin_event,Proc,RainyDice:Dice,message:str,user_id:int,platform:int,group_id = 0):
         if message.startswith('on'):

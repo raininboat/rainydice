@@ -6,7 +6,7 @@
     /_/|_/_/ |_/___/_/|_/   /_/  
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
-        跑团日志 log 记录，DOCX 文档实现
+        跑团日志 log 记录， log文件生成模块
     
     Copyright (C) 2021  RainyZhou  
                         Email: thunderain_zhou@163.com
@@ -34,62 +34,96 @@ from docx.oxml.ns import qn
 from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
+from time import strftime , localtime
+
 from rainydice.msgesacpe import messageEscape
 from rainydice.dice_command.constant_key import LOG
 
-class logdict(object):
-    def __init__(self,key,line):
-        self.logline = self.defaultline()
-        for i,v in zip(key,line):
-            self.logline.__setattr__(i,v)
-        self.name = messageEscape.htmlunescape(self.logline.User_Name)
-        
-    class defaultline(object):
-        def __getattribute__(self, name):
-            return name
-class logdocx(object):
-    def __init__(self):
-        self = docx.Document()
-        self.styles['Normal'].font.name = u"Times New Roman"
-        self.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
-        self.core_properties.author = 'Rainy Dice'
-        self.core_properties.title = 'DICE LOG 跑团记录'
-        
+class LogLine(object):
+    def __init__(self,line):
+        self.logline = {}
+        for i,v in zip(LOG.key,line):
+            self.logline[i] = v
+        self.name = messageEscape.htmlunescape(self.logline['User_Name'])
+        self.text = messageEscape.htmlunescape(self.logline['User_Text'])
+        self.id = self.logline['User_ID']
+        self.pf = self.logline['Platform']
+        self.timestamp = self.logline['Log_Time']
+        self.time_arr = localtime(self.timestamp)
 
-    def logline(self,logdict,color):
-        logtime = logdict['time']
-        name = logdict['name']
-        textlist = str.splitlines(logdict['text'])
+
+class LogDocx(object):
+    def __init__(self,path):
+        self.logpath=path+'log.docx'
+        self.doc = docx.Document()
+        self.doc.styles['Normal'].font.name = u"Calibri"
+        self.doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
+        self.doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
+        self.doc.styles['Normal'].paragraph_format.space_after=0
+        self.doc.styles['Normal'].paragraph_format.space_before=0
+        self.doc.core_properties.author = 'Rainy Dice'
+        self.doc.core_properties.title = 'DICE LOG 跑团记录'
+
+    def logline(self,logline:LogLine,colorid:int):
+        logtime = strftime('%H:%M:%S',logline.time_arr)
+        name = logline.name
+        textlist = str.splitlines(logline.text)
         
         for text in textlist:
             logtext = '<{name}> {text}'.format(name=name,text=text)
-            para = self.add_paragraph()
+            para = self.doc.add_paragraph()
             run = para.add_run()
             run.font.color.rgb = RGBColor(0xc0,0xc0,0xc0)
             run.add_text(logtime)
             run = para.add_run()
-            run.font.color.rgb = RGBColor(LOG.colorid_hex[color])
+            r,g,b = LOG.colorid_hex[colorid]
+            run.font.color.rgb = RGBColor(r,g,b)
             run.add_text(logtext)
 
-    def logsave(self,path):
-        self.save(path)
+    def logsave(self):
+        self.doc.save(self.logpath)
 
-class loghtml(object):
+class LogHtml(object):
     def __init__(self,path):
         self.file = open(path+'log.html','w', encoding = 'utf-8',errors='ignore')
-        self.file.write(LOG.htmlheader)
+        self.file.write(LOG.html_header)
 
-    def logline(self,logdict,colorid):
-        htmltamplate='''\
-<span style="color: #C0C0C0;font-size: 1.5">{time}</span>
-<span style="color: {color};font-size: 1.5">&lt;{name}&gt; {text}</span>
-<br/>
-'''
+    def logline(self,logline:LogLine,colorid:int):
         color = LOG.colorid_str[colorid]
-        textlist = str.splitlines(logdict['text'])
+        textlist = str.splitlines(logline.text)
+        logtime = strftime('%H:%M:%S',logline.time_arr)
         for text in textlist:
-            self.file.write(htmltamplate.format(time=logdict['time'],color=color,name=logdict['name'],))
+            self.file.write(LOG.html_tamplate.format(time=logtime,color=color,name=logline.name,text=text))
 
     def logsave(self):
-        self.file.write(LOG.htmlend)
+        self.file.write(LOG.html_end)
+        self.file.close()
+
+class LogTxtRaw(object):
+    def __init__(self,path):
+        self.file = open(path+'raw.txt','w',encoding='utf-8',errors='ignore')
+    
+    def logline(self,thisline:LogLine,colorid=None):
+        name = thisline.name
+        userid = thisline.id
+        text=thisline.text
+        logtime = strftime('%Y-%m-%d %H:%M:%S',thisline.time_arr)
+        self.file.write(LOG.txtraw_tamplate.format(name=name,User_ID=userid,Time=logtime,text=text))
+
+
+    def logsave(self):
+        self.file.close()
+
+class LogCsv(object):
+    def __init__(self,path):
+        self.file = open(path+'log_form.csv', 'w', encoding = 'utf-8-sig',errors='ignore')
+
+    def logline(self,thisline:LogLine,colorid=None):
+        loglist=[]
+        for i in LOG.key:
+            # str.replace(log_dict[i],'"','""')
+            loglist.append('"{0}"'.format(str.replace(thisline.logline[i].__str__(),'"','""')))
+        self.file.write(','.join(loglist))
+
+    def logsave(self):
         self.file.close()

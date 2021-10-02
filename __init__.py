@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.5-alpha.1' 
-explain='更新bot.json存储方式，完成master设置（只是目前设置了也没有用处）'
+version = '0.3.6-alpha.1' 
+explain='完成 log docx 渲染模块，只要不发送 html 版本则不容易被识别为垃圾邮件'
 
 author = 'RainyZhou'
 import rainydice.main

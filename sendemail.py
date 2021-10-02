@@ -31,7 +31,9 @@ import smtplib as __smtplib
 from email.header import Header as __Header
 from email.mime.multipart import MIMEMultipart as __MIMEMultipart
 from email.mime.text import MIMEText as __MIMEText
+from email.mime.base import MIMEBase as __MIMEBase
 from email.utils import formataddr as __formataddr
+from email.encoders import encode_base64 as __encode_base64
 # import threading 还是不去搞成多线程了
 
 # 转换收件人信息
@@ -43,28 +45,40 @@ def __formatrawaddr(receiver_raw:list):
         receiver.append(i[1])
     return string[:-1],receiver
 # 添加附件
-def __att(path,filename,encoding='utf-8'):
+def __att(path,filename,encoding='utf-8'): 
     with open(path+filename,'r',encoding=encoding) as file:
         att1 = __MIMEText(file.read(), 'base64', encoding)
     att1["Content-Type"] = 'application/octet-stream'
     att1["Content-Disposition"] = 'attachment; filename="{0}"'.format(filename)
     return att1
+def __att2(path,filename):
+    file_msg = __MIMEBase('application', 'octet-stream')  
+    with open(path+filename,mode='rb') as file:
+        file_msg.set_payload(file.read())
+    __encode_base64(file_msg)
+    file_msg.add_header('Content-Disposition','attachment', filename = filename)
+    return file_msg
+
 def send_email(botconf:dict,logpath:str,receiver_raw:list):
     message = __MIMEMultipart()
     useraddr = botconf['email']['useraddr']
     message['From'] = __formataddr((botconf['name'],useraddr),'utf-8')
     message['To'],receivers = __formatrawaddr(receiver_raw)
     message['Subject'] = __Header('跑团记录获取', 'utf-8')
-    with open(logpath+'log.html','r',encoding='utf-8') as file:
-        message.attach(__MIMEText(file.read(), 'html', 'utf-8'))
+    if botconf['log']['html']:
+        with open(logpath+'log.html','r',encoding='utf-8') as file:
+            message.attach(__MIMEText(file.read(), 'html', 'utf-8'))
+    else:
+        message.attach(__MIMEText('Rainy Dice 跑团记录获取，请在附件中下载 log文件', 'plain', 'utf-8'))
     if botconf['log']['txtRaw']:
-        att1 = __att(logpath,'log_raw.txt','utf-8')
+        att1 = __att(logpath,'raw.txt','utf-8')
         message.attach(att1)
     if botconf['log']['csv']:
         att2 = __att(logpath,'log_form.csv','utf-8-sig')
         message.attach(att2)
     if botconf['log']['doc']:
-        pass
+        att3 = __att2(logpath,'log.docx')
+        message.attach(att3)
     host = botconf['email']['host']
     port = botconf['email']['port']
     password = botconf['email']['password']

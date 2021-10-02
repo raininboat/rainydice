@@ -6,7 +6,7 @@
     /_/|_/_/ |_/___/_/|_/   /_/  
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
-        所有内部常量
+        内部常量
     
     Copyright (C) 2021  RainyZhou  
                         Email: thunderain_zhou@163.com
@@ -44,7 +44,8 @@ class __log(object):
             (0x00,0xff,0xff),(0xff,0x00,0xff),
             (0x80,0x80,0x00)
             ]
-        self.htmlheader = '''\
+        self.txtraw_tamplate = '''{name}({User_ID:d}) {Time}\n{text}\n\n'''
+        self.html_header = '''\
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -53,10 +54,16 @@ class __log(object):
 </head>
 <body>
 '''
-        self.htmlend = '''\
+        self.html_tamplate = '''\
+<span style="color: #C0C0C0;font-size: 1.5">{time}</span>
+<span style="color: {color};font-size: 1.5">&lt;{name}&gt; {text}</span>
+<br/>
+'''
+        self.html_end = '''\
 </body>
 </html>
 '''
+        self.csv_head = '''"ID","Platform","User_ID","User_Name","User_Text","Log_Time","Group_ID","Group_Name"\n'''
 
 
 class __group(object):
