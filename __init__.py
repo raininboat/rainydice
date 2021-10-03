@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.4' 
-explain='完成 system restart 远程重启框架'
+version = '0.3.6-alpha.5' 
+explain='system status 添加插件运行时间'
 
 author = 'RainyZhou'
 import rainydice.main

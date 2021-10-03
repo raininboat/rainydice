@@ -43,7 +43,13 @@ def getSysState(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group
     memory = check_system_state.MemoryCheck()
     dick = check_system_state.DickUsage()
     localtime = check_system_state.LocalTime()
-    return replyfmt.format(botname=botname,cpu=cpu,memory=memory,dick=dick,local_time=localtime)
+    m, s = divmod(int(time.time()-RainyDice.starttime), 60)
+    h, m = divmod(m, 60)
+    d, h = divmod(h, 24)
+    alivetime = '{0:0>2}:{1:0>2}:{2:0>2}'.format(h,m,s)
+    if d > 0:
+        alivetime = str(d)+':'+alivetime
+    return replyfmt.format(botname=botname,cpu=cpu,memory=memory,dick=dick,local_time=localtime,alive_time=alivetime)
 
 def callSysRestart(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID,isLogOn=False):
     '远程重启框架'

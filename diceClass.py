@@ -55,6 +55,7 @@ class Dice(object):
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
+        self.starttime = time.time()
     
     def check_user_trust(self,userid,platform):
         '获取某一用户的信任度'
