@@ -65,7 +65,7 @@
 - - -
 ## 配置存储文件
 ### conf/bot.json 具体配置：
-```json
+```jsonc
 {
     "email": {
         "enabled": true,                // 是否开启email模块
