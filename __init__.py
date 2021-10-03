@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.6-alpha.2' 
-explain='重构部分脚本文件位置和内部实现'
+version = '0.3.6-alpha.3' 
+explain='bug fix，update README'
 
 author = 'RainyZhou'
 import rainydice.main

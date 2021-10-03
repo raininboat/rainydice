@@ -58,7 +58,6 @@ class LogDocx(object):
         self.doc = docx.Document()
         self.doc.styles['Normal'].font.name = u"Calibri"
         self.doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
-        self.doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
         self.doc.styles['Normal'].paragraph_format.space_after=0
         self.doc.styles['Normal'].paragraph_format.space_before=0
         self.doc.core_properties.author = 'Rainy Dice'

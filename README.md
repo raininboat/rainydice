@@ -1,5 +1,7 @@
 # Rainy Dice 跑团机器人
 
+***注意！本插件目前处在开发迭代状态，存储结构不保证与未来版本通用！***
+
 本插件适用于仑质编写的[OlivOS青果核心交互栈](https://github.com/OlivOS-Team/OlivOS)，内容有参考仑质的[OlivaDice(DIXE)](https://github.com/lunzhiPenxil/Dice)
 <br>
 
@@ -8,7 +10,14 @@
 >`备份库`：[gitee](https://gitee.com/thunderain_zhou/rainydice)
 <br>
 
+## 插件依赖第三方库
+- `psutil` OlivOS 本体也在使用，无需重复安装 
+- `python-docx` 使用指令 `pip install python-docx` 下载安装
+- `sqlite3`
+- 。。。
+
 - - -
+
 ## 当前已完成的功能列表
 ### _标准跑团功能_
 - `.st` 技能设置指令 包含：.st show / del / clr / name (设置当前人物卡名称）/  标准半自动人物卡的st输入 / .st 技能 +-表达式
@@ -20,7 +29,7 @@
 - `.ti` / `.li` 疯狂症状
 - `.en` 幕间成长检定(未进行测试)
 - `.log` 跑团记录
-> 目前跑团记录基本实现已经完成，文件通过smtp邮件发送至`qq邮箱`中，tg等其他平台暂未适配，由于染色目前是通过正文html实现的，有很大概率被拦截为***垃圾邮件***，如未获取，请尝试在垃圾邮件中寻找或自行联系master
+> 目前跑团记录基本实现已经完成，文件通过smtp邮件发送至`qq邮箱`中，tg等其他平台暂未适配，目前可通过html渲染生成邮件正文，或生成docx文档等方式进行渲染，其中使用html发送正文有很大概率被拦截为***垃圾邮件***，如未获取，请尝试在垃圾邮件中寻找或自行联系master
 <br>
 
 ### _其他功能_
@@ -54,6 +63,35 @@
 - 优化指令匹配模块
 
 - - -
+## 配置存储文件
+### conf/bot.json 具体配置：
+```json
+{
+    "email": {
+        "enabled": true,                // 是否开启email模块
+        "host": "smtp.exmail.qq.com",   // email服务商的smtp服务器（在官方帮助文档中寻找）
+        "password": "xxxxx",            // 授权码（自行查看邮件运营商帮助文档，开启smtp服务）
+        "port": 465,                    // smtp服务器端口
+        "ssl": true,                    // 是否开启ssl
+        "useraddr": "noreply@mail.rainydice.cn"     // 具体邮箱账号
+    },
+    "log": {                            // log 文件渲染方式，原生txt文档默认生成
+        "csv": false,                   // csv 版本(也就是sql存储的原生表格信息) 默认关闭               
+        "doc": true,                    // docx 版本，染色文件 默认开启
+        "html": false                   // html 开启后邮件正文使用html文档做染色文件，容易被判定为垃圾邮件 默认关闭
+    },
+    "name": "本机器人",                 // Rainy Dice 机器人名称
+    "qq_admin": [
+        0                               // qq 平台dice管理员
+    ],
+    "qq_master": 0,                     // qq 平台dice所有者
+    "telegram_admin": [
+        222,
+        321
+    ],
+    "telegram_master": 123
+}
+```
 ## 最后
 
 >由于本人马上就要进入高三，这一年应该没多少时间进行更新（咕咕咕预告），如果有人愿意在此基础上进行更新改造都欢迎，最后如果真有事情要联系至此邮箱(虽然我不一定有时间看)：thunderain_zhou@163.com
