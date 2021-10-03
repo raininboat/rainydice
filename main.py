@@ -186,7 +186,7 @@ def group_reply(plugin_event, Proc):
         else:
             log_name = 'log_{0:d}_{1:d}_{2:d}'.format(Group_Platform,Group_ID,time.time().__int__())
             RainyDice.group.set('log',(0,log_name),Group_Platform,Group_ID)
-            RainyDice.chat_log.create(log_name)
+            dice_command.chat_log.log_create(RainyDice.bot,log_name)
         log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
         if User_ID in RainyDice.group[Group_Platform][Group_ID]['name']:
             user_name = RainyDice.group[Group_Platform][Group_ID]['name'][User_ID]
@@ -194,7 +194,7 @@ def group_reply(plugin_event, Proc):
             user_name = RainyDice.user[Group_Platform][User_ID]['U_Name']
         log_time = plugin_event.base_info['time']
         group_name = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
-        RainyDice.chat_log.log(log_name=log_name,platform=Group_Platform,user_id=User_ID,user_name=user_name,user_text=message,log_time=log_time,group_id=Group_ID,group_name=group_name)
+        dice_command.chat_log.log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=User_ID,user_name=user_name,user_text=message,log_time=log_time,group_id=Group_ID,group_name=group_name)
     if message == '.bot' or message == '。bot' or message == '/bot':    # 私聊回应 .bot
         plugin_event.send('private',User_ID,RainyDice.GlobalVal.GlobalMsg['BotMsg'])
         return None
@@ -248,12 +248,12 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             else:
                 log_name = 'log_{0:d}_{1:d}_{2:d}'.format(Group_Platform,Group_ID,time.time().__int__())
                 RainyDice.group.set('log',(0,log_name),Group_Platform,Group_ID)
-                RainyDice.chat_log.create(log_name)
+                dice_command.chat_log.log_create(RainyDice.bot,log_name)
             log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
             group_name = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
             self_id = plugin_event.base_info['self_id']
             self_name = RainyDice.bot.data['name']
-            RainyDice.chat_log.log(log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=reply,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)
+            dice_command.chat_log.log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=reply,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)
 
     if message.startswith('ra') or message.startswith('rc'):
         if message == 'ra' or message == 'rc':
@@ -366,7 +366,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('log'))
         else:
             message = str.strip(message[3:])
-            status,isMultiReply ,reply,isLogOn = rd.LOG(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            status,isMultiReply ,reply,isLogOn = dice_command.chat_log.log_cmd(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             send_reply(plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
     elif message.startswith('help'):
@@ -419,9 +419,9 @@ def send_reply(plugin_event,proc,reply,isLogOn=False,isMultiReply=False,status=0
         else:
             log_name = 'log_{0:d}_{1:d}_{2:d}'.format(Group_Platform,Group_ID,time.time().__int__())
             RainyDice.group.set('log',(0,log_name),Group_Platform,Group_ID)
-            RainyDice.chat_log.create(log_name)
+            dice_command.chat_log.log_create(RainyDice.bot,log_name)
         log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
         group_name = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
         self_id = plugin_event.base_info['self_id']
         self_name = RainyDice.bot.data['name']
-        RainyDice.chat_log.log(log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=reply,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)
+        dice_command.chat_log.log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=reply,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)

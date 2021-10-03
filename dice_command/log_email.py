@@ -70,9 +70,8 @@ def send_email(botconf:dict,logpath:str,receiver_raw:list):
             message.attach(__MIMEText(file.read(), 'html', 'utf-8'))
     else:
         message.attach(__MIMEText('Rainy Dice 跑团记录获取，请在附件中下载 log文件', 'plain', 'utf-8'))
-    if botconf['log']['txtRaw']:
-        att1 = __att(logpath,'raw.txt','utf-8')
-        message.attach(att1)
+    att1 = __att(logpath,'raw.txt','utf-8')
+    message.attach(att1)
     if botconf['log']['csv']:
         att2 = __att(logpath,'log_form.csv','utf-8-sig')
         message.attach(att2)
@@ -87,11 +86,7 @@ def send_email(botconf:dict,logpath:str,receiver_raw:list):
             mail = __smtplib.SMTP_SSL(host=host,port=port)
         else:
             mail = __smtplib.SMTP(host=host,port=port)
-        a = mail.login(user=useraddr,password=password)
-        # print(a)
-        # print(useraddr)
-        # print(receivers)
-        # print(message.as_string())
+        mail.login(user=useraddr,password=password)
         mail.sendmail(from_addr=useraddr,to_addrs=receivers,msg=message.as_string())
         status = True
     except __smtplib.SMTPException as err:

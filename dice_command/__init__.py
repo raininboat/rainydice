@@ -28,3 +28,4 @@
 
 '''
 from rainydice.dice_command import check_system_state
+from rainydice.dice_command import chat_log

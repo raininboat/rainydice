@@ -32,7 +32,6 @@ from rainydice import GlobalVal
 from rainydice import version,author
 from rainydice.msgesacpe import messageEscape
 import rainydice.versionAdapter as versionAdapter
-from rainydice.dice_command import log_create
 # from rainydice.main import RainyDice
 #from data.rainydice import *
 import json
@@ -55,115 +54,6 @@ class Dice(object):
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
-        self.chat_log = chat_log(Data_path=self.data_path,log=log,bot=self.bot)
-
-class chat_log(object):
-    def __init__(self,Data_path,log,bot):
-        self.sql_path = Data_path + '/RainyDice.db'
-        self.csvinit = '''"ID","Platform","User_ID","User_Name","User_Text","Log_Time","Group_ID","Group_Name"\n'''
-        self.htmlhead = '''\
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title></title>
-</head>
-<body>
-'''
-        self.htmlend = '''\
-</body>
-</html>'''
-        self.log_path = Data_path + '/log/'
-        self.proc_log = log
-        self.logconf = bot.data['log']
-        self.key = ('ID','Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
-        self.colorid = ["#FF0000","#008000","#FFC0CB","#FFA500","#800080","#000000","#0000FF","#FFFF00","#CD5C5C","#A52A2A","#008080","#000080","#800000","#32CD32","#00FFFF","#FF00FF","#808000"]
-    def log_name_create(self,platform,group_id):
-        log_name = 'log_{0:d}_{1:d}_{2:d}'.format(platform,group_id,time.time())
-        return log_name
-    def create(self,log_name):
-        SQL_conn = SQL(self.sql_path)
-        pre_sql = '''CREATE TABLE IF NOT EXISTS {log_name}(
-    'ID'    INTEGER PRIMARY KEY   AUTOINCREMENT,
-    'Platform'      integer         NOT NULL,
-    'User_ID'       integer         default 0,
-    'User_Name'     TEXT            default '用户',
-    'User_Text'     TEXT            default '',
-    'Log_Time'      integer         default 0,
-    'Group_ID'       integer        default 0,
-    'Group_Name'     TEXT           default '群聊'
-);'''.format(log_name=log_name)
-        SQL_conn.cursor.execute(pre_sql)
-        SQL_conn.connection.commit()
-        self.proc_log(0,'Created Log Form: '+log_name)
-    def log(self,log_name,platform,user_id,user_name,user_text,log_time,group_id=0,group_name='群聊'):
-        SQL_conn = SQL(self.sql_path)
-        pre_sql = '''INSERT INTO {log_name}('Platform','User_ID','User_Name','User_Text','Log_Time','Group_ID','Group_Name')
-        VALUES (?,?,?,?,?,?,?);'''.format(log_name=log_name)
-        user_text = messageEscape.escape_before_save(messageEscape.cqcode_replace(user_text),False)
-        try:
-            SQL_conn.cursor.execute(pre_sql,(platform,user_id,user_name,user_text,log_time,group_id,group_name))
-            SQL_conn.connection.commit()
-            # self.proc_log(0,'logging！sql: '+pre_sql+' ; val: '+(platform,user_id,user_name,user_text,log_time,group_id,group_name).__str__())
-        except Exception as err:
-            self.proc_log(3,'log失败！sql: '+pre_sql+' ; err: '+err.__str__())
-            SQL_conn.connection.rollback()
-    
-    def end(self,log_name):
-        SQL_conn = SQL(self.sql_path)
-        pre_sql = '''SELECT * FROM {log_name}'''.format(log_name=log_name)
-        log_path = self.log_path+log_name+'/'
-        if not os.path.exists(log_path):
-            os.mkdir(log_path)
-        if self.logconf['csv']:
-            log_csv = log_create.LogCsv(log_path)
-        if self.logconf['html']:
-            log_html = log_create.LogHtml(log_path)
-        if self.logconf['doc']:
-            log_doc = log_create.LogDocx(log_path)
-        if self.logconf['txtRaw']:
-            log_txtRaw = log_create.LogTxtRaw(log_path)
-
-        try:
-            SQL_conn.cursor.execute(pre_sql)
-            temp = SQL_conn.cursor.fetchall()
-            # print(temp)
-            if temp != []:
-                user_list = []
-                for line in temp:
-                    thisline=log_create.LogLine(line)
-                    if thisline.id in user_list:
-                        color_id=user_list.index(thisline.id)
-                    else:
-                        color_id = len(user_list)
-                        user_list.append(thisline.id)
-                    if self.logconf['csv']:
-                        log_csv.logline(thisline,color_id)
-                    if self.logconf['html']:
-                        log_html.logline(thisline,color_id)
-                    if self.logconf['doc']:
-                        log_doc.logline(thisline,color_id)
-                    if self.logconf['txtRaw']:
-                        log_txtRaw.logline(thisline,color_id)
-                pre_sql = '''DROP TABLE {log_name}'''.format(log_name=log_name)
-                SQL_conn.cursor.execute(pre_sql)
-                SQL_conn.connection.commit()
-                status = True
-        except sqlite3.Error as err:
-            self.proc_log(3,'log end失败！sql: '+pre_sql+' ; err: '+err.__str__())
-            SQL_conn.connection.rollback()
-            status = False
-            log_path = 'log end失败！err: '+err.__str__()
-        finally:
-            if self.logconf['csv']:
-                log_csv.logsave()
-            if self.logconf['html']:
-                log_html.logsave()
-            if self.logconf['doc']:
-                log_doc.logsave()
-            if self.logconf['txtRaw']:
-                log_txtRaw.logsave()
-        return status,log_path
 
 class basic_info(object):
     def __init__(self,path,log):
@@ -220,8 +110,7 @@ class bot(object):
         logconf = {
             'csv' : True,
             "html" : False,
-            "doc" : True,
-            "txtRaw" : True
+            "doc" : True
         }
         emailconf = {
         "enabled" : False,
@@ -253,8 +142,8 @@ class bot(object):
                     log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json 完成 email 适配')
                     ischanged = True
         if ischanged:
-            self.set()                
-        
+            self.set()
+
     def create_bot_conf(self,Data_Path= '',log=None):
         f_conf = open(Data_Path+'/conf/bot.json',"w",encoding="utf-8")
         default_conf = '''\
@@ -270,8 +159,7 @@ class bot(object):
     "log": {
         "csv": false,
         "doc": true,
-        "html": false,
-        "txtRaw" : true
+        "html": false
     },
     "name": "本机器人",
     "qq_admin": [
@@ -298,8 +186,7 @@ class bot(object):
     "log": {
         "csv": False,
         "doc": True,
-        "html" : False,
-        "txtRaw" : True
+        "html" : False
     },
     "name": "本机器人",
     "qq_admin": [

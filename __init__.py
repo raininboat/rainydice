@@ -26,8 +26,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-version = '0.3.6-alpha.1' 
-explain='完成 log docx 渲染模块，只要不发送 html 版本则不容易被识别为垃圾邮件'
+version = '0.3.6-alpha.2' 
+explain='重构部分脚本文件位置和内部实现'
 
 author = 'RainyZhou'
 import rainydice.main
