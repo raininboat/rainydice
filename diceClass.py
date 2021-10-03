@@ -44,6 +44,7 @@ class Dice(object):
             'qq' : 0,
             'telegram' : 1
         }
+        self.platform_list = ['qq','telegram']
         self.sql_path = Data_Path + '/RainyDice.db'
         self.data_path = Data_Path
         self.log = log
@@ -54,6 +55,21 @@ class Dice(object):
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
+    
+    def check_user_trust(self,userid,platform):
+        '获取某一用户的信任度'
+        if userid == self.bot.data[self.platform_list[platform]+'_master']:
+            if self.user[platform][userid]['U_Trust'] < 255:
+                self.user.set('U_Trust',255,platform,userid)
+                self.log(2,'将用户[{0}][{1}]的信任设为255 (master)'.format(platform,userid))
+            return 255
+        elif userid in self.bot.data[self.platform_list[platform]+'_admin']:
+            if self.user[platform][userid]['U_Trust'] < 4:
+                self.user.set('U_Trust',4,platform,userid)
+                self.log(2,'将用户[{0}][{1}]的信任设为4 (admin)'.format(platform,userid))
+            return 4
+        else:
+            return self.user[platform][userid]['U_Trust']
 
 class basic_info(object):
     def __init__(self,path,log):

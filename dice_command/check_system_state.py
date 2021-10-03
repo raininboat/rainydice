@@ -33,20 +33,6 @@ from time import time
 import psutil
 from datetime import datetime
 
-# --------------------- #
-# system state 功能实现  #
-# --------------------- #
-def getSysState(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID,replyfmt:str=None):
-    if replyfmt == None:
-        replyfmt = '{botname}系统状态：\n{cpu}\n{memory}\n{dick}\n{local_time}'
-    botname = RainyDice.bot.data['name']
-    cpu = CpuPercent()
-    memory = MemoryCheck()
-    dick = DickUsage()
-    localtime = LocalTime()
-    return replyfmt.format(botname=botname,cpu=cpu,memory=memory,dick=dick,local_time=localtime)
-
-
 # ---------------------- #
 # PSUTIL 模块本地转接口等 #
 # ---------------------- #

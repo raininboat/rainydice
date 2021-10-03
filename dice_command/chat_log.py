@@ -35,11 +35,6 @@ import os
 from rainydice.dice_command import log_email,log_render
 from rainydice.msgesacpe import messageEscape
 
-# def __init__(self,Data_path,log,bot):
-#     self.sql_path = Data_path + '/RainyDice.db'
-#     self.log_path = Data_path + '/log/'
-#     self.proc_log = log
-#     self.logconf = bot.data['log']
 class _log_conf(object):
     def __init__(self,bot):
         self.proc_log = bot.log
@@ -205,3 +200,32 @@ def log_cmd(plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,gro
         return 0,False,reply,False
     else:
         return 0,False,'请检查指令',True
+
+def send_reply(plugin_event,proc,reply,RainyDice,isLogOn=False,isMultiReply=False,status=0,Group_Platform=0,Group_ID=0):
+    if isMultiReply:
+        for replypack in reply:
+            if replypack[0] == 'reply':
+                proc.log(0,'[RainyDice]reply:'+replypack[1])
+                plugin_event.reply(replypack[1])
+            elif replypack[0] == 'send':
+                target_type = replypack[1]
+                target_id = replypack[2]
+                reply_msg = replypack[3]
+                proc.log(0,'[RainyDice]send['+target_type+']('+str(target_id)+'):'+replypack[1])
+                plugin_event.send(target_type,target_id,reply_msg)
+    else:
+        proc.log(0,'[RainyDice]reply:'+reply)
+        plugin_event.reply(reply)
+    if isLogOn and Group_ID != 0:
+        log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
+        if 0 in dict.keys(RainyDice.group[Group_Platform][Group_ID]['log']):
+            log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
+        else:
+            log_name = 'log_{0:d}_{1:d}_{2:d}'.format(Group_Platform,Group_ID,time.time().__int__())
+            RainyDice.group.set('log',(0,log_name),Group_Platform,Group_ID)
+            log_create(RainyDice.bot,log_name)
+        log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
+        group_name = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
+        self_id = plugin_event.base_info['self_id']
+        self_name = RainyDice.bot.data['name']
+        log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=reply,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)

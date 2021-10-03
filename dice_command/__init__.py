@@ -27,5 +27,5 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-from rainydice.dice_command import check_system_state
+from rainydice.dice_command import system_command
 from rainydice.dice_command import chat_log

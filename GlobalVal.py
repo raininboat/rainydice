@@ -55,7 +55,7 @@ class GlobalVal(object):
     # 所有指令开始符号（只有这些会匹配）
     Command_Start_Sign = ('.','。','/')
     GlobalMsg = {
-        'BotMsg' : 'RainyDice by Rainy Zhou\n测试版',
+        'BotMsg' : 'RainyDice by Rainy Zhou\n测试版 V{version}',
         'BotOnReply' : '已成功开启{bot_name}',
         'BotOffReply' : '已成功关闭{bot_name}',
         'InputErr' : '请认真核对输入的内容！',
@@ -86,7 +86,8 @@ class GlobalVal(object):
         'logOnReply' : 'log记录开启！请使用.log off 暂停 或 .log end 结束并发送log至邮箱',
         'logOffReply' : 'log已关闭',
         'logEndReply' : 'log完成，正在生成文件并发送',
-        'authorationFailed' : '你没有本权限！'       
+        'authorationFailed' : '你没有本权限！',  
+        'getSysState' : '{botname}系统状态：\n{cpu}\n{memory}\n{dick}\n{local_time}'
     }
     GlobalVal = {
         'rankName' : ["【未知情况】","大成功","极难成功","困难成功","成功","失败","大失败"],
