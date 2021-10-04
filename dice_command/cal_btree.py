@@ -606,6 +606,10 @@ def __RPNcal(cal):
 
 
 def calculate(string:str):
+    '''dice rd 运算模块， string 为运算表达式， 
+    返回 (状态(T) , result (int) , step (str) )
+    或 (状态(F) , '' , error_str )'''
+    string = string.lower()
     try:
         splitdata = __split(string)
         # print(splitdata)

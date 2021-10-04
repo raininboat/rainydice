@@ -55,10 +55,11 @@ class Event(object):
     def group_message(plugin_event, Proc):
         group_reply(plugin_event, Proc)
 
-    def poke(plugin_event, Proc):
+#    def poke(plugin_event, Proc):
 #        poke_reply(plugin_event, Proc)
-        pass
+#        pass
     def save(plugin_event, Proc):
+        Proc.log(2,'Rainy Dice Save')
         pass
     # onebot框架heartbeat
     def heartbeat(plugin_event, Proc):
@@ -259,9 +260,9 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
         if message == 'ra' or message == 'rc':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('ra'))
         else:
-            message=message[2:].strip()
+            message=message[2:]
             # 返回 (状态码(判断是否正常，或错误类型，目前没搞只是留好接口),是否为多处回复（T/F）,单回复信息或(('reply',message),('send',target_type,target_id,message),...))
-            status,isMultiReply ,reply = rd.RA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            status,isMultiReply ,reply = dice_command.ra_command.callRA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
     elif message.startswith('sc'):
@@ -383,7 +384,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
     elif message.startswith('system'):
         if message == 'system':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('system'))
-        elif message[6:].strip().startswith('status'):
+        elif message[6:].strip().startswith('status') or message[6:].strip().startswith('state'):
             reply = dice_command.system_command.getSysState(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             func_reply(isLogOn=isLogOn,reply=reply)
         elif message[6:].strip().startswith('restart'):

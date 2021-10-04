@@ -27,13 +27,13 @@
 
 '''
 
-version = '0.3.6-alpha.5' 
-explain='system status 添加插件运行时间'
+version = '0.3.6-alpha.6' 
+explain='重构 ra 模块'
 
 author = 'RainyZhou'
 import rainydice.main
-import rainydice.dice
-import rainydice.GlobalVal
+# import rainydice.dice
+# import rainydice.GlobalVal
 # import rainydice.calculate
 # import rainydice.diceClass
 

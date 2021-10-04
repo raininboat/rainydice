@@ -27,5 +27,12 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
+# 这里的都是对外的真正指令接口模块
+# 内部实现模块的导入通过脚本内 from rainydice.dice_command import xxx 实现
+
+# .system 指令模块
 from rainydice.dice_command import system_command
+# .log 模块 & log 内部记录和渲染接口 
 from rainydice.dice_command import chat_log
+# .ra 指令重构
+from rainydice.dice_command import ra_command
