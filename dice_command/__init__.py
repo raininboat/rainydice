@@ -36,3 +36,5 @@ from rainydice.dice_command import system_command
 from rainydice.dice_command import chat_log
 # .ra 指令重构
 from rainydice.dice_command import ra_command
+# .jrrp 今日人品
+from rainydice.dice_command import jrrp_command

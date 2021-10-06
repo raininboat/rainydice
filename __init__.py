@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.6' 
-explain='重构 ra 模块'
+version = '0.3.6-alpha.7' 
+explain='jrrp 今日人品实现'
 
 author = 'RainyZhou'
 import rainydice.main

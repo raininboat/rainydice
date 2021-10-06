@@ -31,7 +31,7 @@
 import os
 import time
 import sys
-# import OlivOS
+import OlivOS
 from rainydice import explain
 from rainydice.dice import rolldice
 from rainydice.diceClass import Dice
@@ -392,6 +392,10 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
         else:
             reply = '未完成 '+message[6:]
             func_reply(isLogOn=isLogOn,reply=reply)
+        return 1
+    elif message.startswith('jrrp'):
+        status,isMultiReply ,reply = dice_command.jrrp_command.callJrrp(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+        dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
     else:
         return None
