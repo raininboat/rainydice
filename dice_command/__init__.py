@@ -38,3 +38,5 @@ from rainydice.dice_command import chat_log
 from rainydice.dice_command import ra_command
 # .jrrp 今日人品
 from rainydice.dice_command import jrrp_command
+# .draw 抽卡模块
+from rainydice.dice_command import draw_command

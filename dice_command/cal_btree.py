@@ -605,7 +605,7 @@ def __RPNcal(cal):
     return a.pop()
 
 
-def calculate(string:str):
+def calculate(string:str,stepreturn = True):
     '''dice rd 运算模块， string 为运算表达式， 
     返回 (状态(T) , result (int) , step (str) )
     或 (状态(F) , '' , error_str )'''
@@ -615,13 +615,22 @@ def calculate(string:str):
         # print(splitdata)
         cal = __RPNchange(splitdata)
         result , step = __RPNcal(cal)
-        return True,result ,step
+        if stepreturn:
+            return True,result ,step
+        else:
+            return result
     except UserWarning as err:
         a,b = err.args
         #print(a,b)
-        return False , a, b
+        if stepreturn:
+            return False , a, b
+        else:
+            return None
     except Exception as err:
-        return False ,'', err.__str__()
+        if stepreturn:
+            return False ,'', err.__str__()
+        else:
+            return None
 # if __name__ == '__main__':
 #     string = '3+100d1/01'
 #     print(calculate(string))
