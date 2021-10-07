@@ -47,22 +47,15 @@ def strPublicDeckKey():
 def drawCard(deckName:str,tempdeck=False,decks:dict={}):
     '抽卡模块，若牌堆不存在则返回 None'
     # print(deckName,tempdeck,decks)
-    if deckName not in card_deck.mPublicDeck.keys():
-        raise UserWarning(deckName+' not in decks')
-    thisdeck = card_deck.mPublicDeck.get(deckName).copy()
+    thisdeck = getThisDeck(deckName,decks)
+    card = thisdeck[randint(0,len(thisdeck)-1)]
     if not tempdeck:
-        # 已抽取的卡(避免重复抽取)
-        if deckName in decks.keys():
-            for cardused in decks[deckName]:
-            # 删除此牌堆已经抽取的内容, cardused 为已经抽取的卡
-                thisdeck.remove(cardused)
+        if deckName not in decks.keys():
+            decks[deckName] = {}
+        if card  in decks[deckName].keys():
+            decks[deckName][card] = decks[deckName][card] + 1
         else:
-            decks[deckName] = []
-        # 抽卡
-        card = thisdeck[randint(0,len(thisdeck)-1)]
-        decks[deckName].append(card)
-    else:
-        card = thisdeck[randint(0,len(thisdeck)-1)]
+            decks[deckName][card] = 1
     lq = str.find(card,'{')
     rq = str.find(card,'}',lq+1)
     while lq != -1 and rq != -1 and rq-lq > 1: # 当抽到的卡组含有 {xx}时进行进一步抽卡
@@ -85,8 +78,32 @@ def drawCard(deckName:str,tempdeck=False,decks:dict={}):
         card = card.replace(card[lq:rq+1],str(result),1)
         lq = str.find(card,'[',lq)
         rq = str.find(card,']',lq+1)
+    if card.startswith('::'):
+        s = card.find('::',2)
+        card = card[s+2:]
     # print(card)
     return card,decks
+
+def getThisDeck(deckName,decks:dict={}):
+    if deckName not in card_deck.mPublicDeck.keys():
+        raise UserWarning(deckName+' not in decks')
+    tmpdeck = []
+    if deckName in decks.keys():
+        usedCard = decks[deckName]
+    else:
+        usedCard = {}
+    # print('已抽取卡片',usedCard)
+    for deckkeyRaw in card_deck.mPublicDeck.get(deckName):
+        cnt = 1
+        if deckkeyRaw.startswith('::'):
+            s = deckkeyRaw.find('::',2)
+            if s != -1:
+                cnt = int(deckkeyRaw[2:s])
+        if deckkeyRaw in usedCard.keys():
+            cnt = cnt - usedCard[deckkeyRaw]
+        if cnt > 0:
+            tmpdeck.extend([deckkeyRaw]*cnt)
+    return tmpdeck
 
 def callDraw(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):
     user_name = RainyDice.user[Group_Platform][User_ID]['U_Name']
@@ -96,12 +113,12 @@ def callDraw(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID
         reply = '全牌堆列表：\n'+strPublicDeckKey()
     else:
         try:
-            reply = drawCard(message)[0]
+            reply = reply.format(username=user_name,card=drawCard(message)[0])
         except UserWarning as err:
             reply = '抽卡错误！ '+err.__str__()
     return 0,False,reply
 
 # if __name__ == '__main__':
 #     #print(mPublicDeck['凯尔特十字牌阵'][0])
-#     #print(strPublicDeckKey())
-#     print(drawCard('即时症状')[0])
+#     print(strPublicDeckKey())
+#     #print(drawCard('即时症状')[0])

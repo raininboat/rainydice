@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.8' 
-explain = 'draw 牌堆抽卡实现'
+version = '0.3.6-alpha.9' 
+explain = 'draw 抽卡 权重牌堆实现'
 
 author = 'RainyZhou'
 import rainydice.main

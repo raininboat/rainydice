@@ -49,8 +49,6 @@ def getJrrpRandom(userid,platform,*salt):
     hashtmp.update(uid.encode('utf-8'))
     hashtmp.update(platform_str.encode('utf-8'))
     hashtmp.update(salt_str.encode('utf-8'))
-    # 仅使用其中8字节内容生成随机数
-    txt = hashtmp.hexdigest()[8:24]
     # print(txt,int(txt,16))
     return int(hashtmp.hexdigest(),16)/(1<<128)
 
