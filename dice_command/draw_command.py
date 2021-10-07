@@ -37,11 +37,20 @@ from rainydice.dice_command import cal_btree
 def strPublicDeckKey():
     '返回所有公共牌堆的名称'
     keylist = []
+    keylistlong = []
+    cnt = 0
     for thiskey in card_deck.mPublicDeck.keys():
+        cnt = cnt + 1
         if thiskey[0] != '_':
             # 判断私有牌堆，即 _ 开头的不输出
             keylist.append(thiskey)
-    strkeylist = ','.join(keylist)
+        if cnt == 40:
+            # 每页显示50个牌堆
+            keylistlong.append(','.join(keylist))
+            keylist = []
+            cnt = 0
+    keylistlong.append(','.join(keylist))
+    strkeylist = '\f'.join(keylistlong)
     return strkeylist
 
 def drawCard(deckName:str,tempdeck=False,decks:dict={}):

@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.9' 
-explain = 'draw 抽卡 权重牌堆实现'
+version = '0.3.6-alpha.10' 
+explain = r'实现\f消息分片发送'
 
 author = 'RainyZhou'
 import rainydice.main

@@ -205,17 +205,23 @@ def send_reply(plugin_event,proc,reply,RainyDice,isLogOn=False,isMultiReply=Fals
     if isMultiReply:
         for replypack in reply:
             if replypack[0] == 'reply':
-                proc.log(0,'[RainyDice]reply:'+replypack[1])
-                plugin_event.reply(replypack[1])
+                msglst = str.split(replypack[1],'\f')
+                for msg in msglst:
+                    proc.log(0,'[RainyDice]reply:'+msg)
+                    plugin_event.reply(msg)
             elif replypack[0] == 'send':
                 target_type = replypack[1]
                 target_id = replypack[2]
-                reply_msg = replypack[3]
-                proc.log(0,'[RainyDice]send['+target_type+']('+str(target_id)+'):'+replypack[1])
-                plugin_event.send(target_type,target_id,reply_msg)
+                # reply_msg = replypack[3]
+                msglst = str.split(replypack[3],'\f')
+                for msg in msglst:
+                    proc.log(0,'[RainyDice]send['+target_type+']('+str(target_id)+'):'+msg)
+                    plugin_event.send(target_type,target_id,msg)
     else:
-        proc.log(0,'[RainyDice]reply:'+reply)
-        plugin_event.reply(reply)
+        msglst = str.split(reply,'\f')
+        for msg in msglst:
+            proc.log(0,'[RainyDice]reply:'+msg)
+            plugin_event.reply(msg)
     if isLogOn and Group_ID != 0:
         log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
         if 0 in dict.keys(RainyDice.group[Group_Platform][Group_ID]['log']):
