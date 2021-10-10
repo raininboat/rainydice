@@ -57,6 +57,11 @@ def drawCard(deckName:str,tempdeck=False,decks:dict={}):
     '抽卡模块，若牌堆不存在则返回 None'
     # print(deckName,tempdeck,decks)
     thisdeck = getThisDeck(deckName,decks)
+    if thisdeck == None:
+        return '{'+deckName+'}',decks
+    elif len(thisdeck) == 0:
+        # 对空卡堆进行排除
+        raise UserWarning('卡组无内容 - '+ deckName + '\n已抽取卡片 - '+decks.__str__())
     card = thisdeck[randint(0,len(thisdeck)-1)]
     if not tempdeck:
         if deckName not in decks.keys():
@@ -95,6 +100,7 @@ def drawCard(deckName:str,tempdeck=False,decks:dict={}):
 
 def getThisDeck(deckName,decks:dict={}):
     if deckName not in card_deck.mPublicDeck.keys():
+        return None
         raise UserWarning(deckName+' not in decks')
     tmpdeck = []
     if deckName in decks.keys():
@@ -128,6 +134,7 @@ def callDraw(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID
     return 0,False,reply
 
 # if __name__ == '__main__':
+#     pass
 #     #print(mPublicDeck['凯尔特十字牌阵'][0])
-#     print(strPublicDeckKey())
-#     #print(drawCard('即时症状')[0])
+#     #print(strPublicDeckKey())
+#     #print(drawCard('塔罗牌阵')[0])
