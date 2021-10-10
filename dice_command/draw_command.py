@@ -79,7 +79,7 @@ def drawCard(deckName:str,deckall,tempdeck=False,decks:dict={}):
         if draw[0] == '%':
             tempdeck = True
             draw = draw[1:]
-        localdraw,decks = drawCard(deckName=draw,tempdeck=tempdeck,decks=decks)
+        localdraw,decks = drawCard(deckName=draw,deckall=deckall,tempdeck=tempdeck,decks=decks)
         card = card.replace(card[lq:rq+1],localdraw,1)
         lq = str.find(card,'{',lq)
         rq = str.find(card,'}',lq+1)

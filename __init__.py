@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.11' 
-explain = r'完成public deck 外置牌堆'
+version = '0.3.6-alpha.12' 
+explain = r'完成public deck 外置牌堆, bug fix'
 
 author = 'RainyZhou'
 import rainydice.main
