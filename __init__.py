@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.10' 
-explain = r'实现\f消息分片发送'
+version = '0.3.6-alpha.11' 
+explain = r'完成public deck 外置牌堆'
 
 author = 'RainyZhou'
 import rainydice.main

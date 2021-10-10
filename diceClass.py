@@ -31,6 +31,7 @@
 from rainydice import GlobalVal
 from rainydice import version,author
 from rainydice.msgesacpe import messageEscape
+from rainydice.dice_command import public_deck
 import rainydice.versionAdapter as versionAdapter
 # from rainydice.main import RainyDice
 #from data.rainydice import *
@@ -56,6 +57,7 @@ class Dice(object):
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
         self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
         self.starttime = time.time()
+        self.publicDeck = deckload(Data_Path,log)
     
     def check_user_trust(self,userid,platform):
         '获取某一用户的信任度'
@@ -71,6 +73,15 @@ class Dice(object):
             return 4
         else:
             return self.user[platform][userid]['U_Trust']
+
+class deckload(object):
+    def __init__(self,datapath,log):
+        self.data_path = datapath
+        self.log = log
+        keys,skip,info = public_deck.initPublicDeck(datapath)
+        self.decks = keys
+        self.metaInfo = info
+        self.skip = skip
 
 class basic_info(object):
     def __init__(self,path,log):

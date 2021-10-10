@@ -87,6 +87,11 @@ def bot_init(plugin_event,proc):
         os.mkdir(Data_Path+'/user')
     if not os.path.exists(Data_Path+'/log'):
         os.mkdir(Data_Path+'/log')
+    if not os.path.exists(Data_Path+'/temp'):
+        os.mkdir(Data_Path+'/temp')
+    if not os.path.exists(Data_Path+'/PublicDeck'):
+        os.mkdir(Data_Path+'/PublicDeck')
+
     try:
         with open(Data_Path+'/conf/ignore.json', 'r', encoding = 'utf-8') as ignore_conf_f:
             ignore_conf = json.loads(ignore_conf_f.read())

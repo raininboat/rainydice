@@ -29,17 +29,18 @@
 '''
 
 from random import randint
-from rainydice.dice_command import card_deck
+# from rainydice.dice_command import card_deck
 from rainydice.dice_command import cal_btree
+from rainydice.dice_command import public_deck
 # import card_deck
 # import cal_btree
 
-def strPublicDeckKey():
+def strPublicDeckKey(publicDeck):
     '返回所有公共牌堆的名称'
     keylist = []
     keylistlong = []
     cnt = 0
-    for thiskey in card_deck.mPublicDeck.keys():
+    for thiskey in publicDeck.decks.keys():  # card_deck.mPublicDeck.keys()
         cnt = cnt + 1
         if thiskey[0] != '_':
             # 判断私有牌堆，即 _ 开头的不输出
@@ -53,10 +54,10 @@ def strPublicDeckKey():
     strkeylist = '\f'.join(keylistlong)
     return strkeylist
 
-def drawCard(deckName:str,tempdeck=False,decks:dict={}):
+def drawCard(deckName:str,deckall,tempdeck=False,decks:dict={}):
     '抽卡模块，若牌堆不存在则返回 None'
     # print(deckName,tempdeck,decks)
-    thisdeck = getThisDeck(deckName,decks)
+    thisdeck = getThisDeck(deckName,deckall,decks)
     if thisdeck == None:
         return '{'+deckName+'}',decks
     elif len(thisdeck) == 0:
@@ -98,8 +99,8 @@ def drawCard(deckName:str,tempdeck=False,decks:dict={}):
     # print(card)
     return card,decks
 
-def getThisDeck(deckName,decks:dict={}):
-    if deckName not in card_deck.mPublicDeck.keys():
+def getThisDeck(deckName,deckall,decks:dict={}):
+    if deckName not in deckall.keys():
         return None
         raise UserWarning(deckName+' not in decks')
     tmpdeck = []
@@ -108,7 +109,7 @@ def getThisDeck(deckName,decks:dict={}):
     else:
         usedCard = {}
     # print('已抽取卡片',usedCard)
-    for deckkeyRaw in card_deck.mPublicDeck.get(deckName):
+    for deckkeyRaw in deckall.get(deckName):
         cnt = 1
         if deckkeyRaw.startswith('::'):
             s = deckkeyRaw.find('::',2)
@@ -125,10 +126,15 @@ def callDraw(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID
     # 'strDrawReply' : '{username}的进行抽卡: \n{card}'
     reply =  RainyDice.GlobalVal.GlobalMsg['strDrawReply']
     if message == 'help':
-        reply = '全牌堆列表：\n'+strPublicDeckKey()
+        reply = '全牌堆列表：\n'+strPublicDeckKey(RainyDice.publicDeck)
     else:
         try:
-            reply = reply.format(username=user_name,card=drawCard(message)[0])
+            if message in RainyDice.publicDeck.decks.keys():
+                deckinfo = RainyDice.publicDeck.metaInfo[RainyDice.publicDeck.decks[message]]
+            else:
+                raise UserWarning(message + ' not found')
+            deckall = public_deck.loadDeck(RainyDice.data_path,deckinfo)
+            reply = reply.format(username=user_name,card=drawCard(message,deckall)[0])
         except UserWarning as err:
             reply = '抽卡错误！ '+err.__str__()
     return 0,False,reply
