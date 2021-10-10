@@ -68,6 +68,7 @@ class DeckInfoTamplate(object):
             self.md5 = thisfile[0]
             self.fileName = thisfile[1]
             self.strDeckName = thisfile[2]
+            self.DeckName = sqlUnescape(thisfile[2])
             self.title = thisfile[3]
             self.namespace = thisfile[4]
             self.dependence = sqlUnescape(thisfile[5])
@@ -78,6 +79,7 @@ class DeckInfoTamplate(object):
             self.md5 = thisfile['file_md5']
             self.fileName = thisfile['file_name']
             self.strDeckName = thisfile['file_key']
+            self.DeckName = sqlUnescape(thisfile['file_key'])
             self.title = thisfile['file_title']
             self.namespace = thisfile['file_namespace']
             self.dependence = sqlUnescape(thisfile['str_file_dependence'])
@@ -122,7 +124,7 @@ def createDeckForm(dataPath,filemd5:str,filename:str,filejson:dict):
         'file_md5' : filemd5,
         'file_name' : filename,
         'file_key' : '',
-        'file_title' : filemd5,
+        'file_title' : filename[:-5],
         'file_namespace' : filemd5,
         'str_file_dependence' : '',
         'file_version' : 'unknown',

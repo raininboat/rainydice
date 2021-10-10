@@ -38,27 +38,34 @@ from rainydice.dice_command import public_deck
 def strPublicDeckKey(publicDeck):
     '返回所有公共牌堆的名称'
     keylist = []
-    keylistlong = []
+    msgAll = []
+    msgThisPage = []
     cnt = 0
-    for thiskey in publicDeck.decks.keys():  # card_deck.mPublicDeck.keys()
-        cnt = cnt + 1
-        if thiskey[0] != '_':
-            # 判断私有牌堆，即 _ 开头的不输出
-            keylist.append(thiskey)
-        if cnt == 40:
-            # 每页显示50个牌堆
-            keylistlong.append(','.join(keylist))
-            keylist = []
+    for thisfile in publicDeck.metaInfo.values():  # card_deck.mPublicDeck.keys()
+        msgThisPage.append(thisfile.title + ':\t')
+        filekeylist = thisfile.DeckName
+        for deckName in filekeylist:
+            keylist.append(deckName)
+            cnt += 1
+        msgThisPage.append(','.join(keylist))
+        keylist = []
+        if cnt >= 30 or len(msgThisPage) >=20:
+            # 每个页面显示的卡组数量累计超过30 或牌堆文件数量超过10
+            msgAll.append(''.join(msgThisPage))
+            msgThisPage = []
             cnt = 0
-    keylistlong.append(','.join(keylist))
-    strkeylist = '\f'.join(keylistlong)
+        else:
+            msgThisPage.append('\n')
+    if msgThisPage != []:
+        msgAll.append(''.join(msgThisPage))
+    strkeylist = '\f'.join(msgAll)
     return strkeylist
 
 def drawCard(deckName:str,deckall,tempdeck=False,decks:dict={}):
     '抽卡模块，若牌堆不存在则返回 None'
     # print(deckName,tempdeck,decks)
     thisdeck = getThisDeck(deckName,deckall,decks)
-    if thisdeck == None:
+    if thisdeck == None:        # 类似 {at} 等非牌堆内容 或者未知依赖问题导致无法找到牌堆时，直接返回原来的内容
         return '{'+deckName+'}',decks
     elif len(thisdeck) == 0:
         # 对空卡堆进行排除
@@ -81,7 +88,7 @@ def drawCard(deckName:str,deckall,tempdeck=False,decks:dict={}):
             draw = draw[1:]
         localdraw,decks = drawCard(deckName=draw,deckall=deckall,tempdeck=tempdeck,decks=decks)
         card = card.replace(card[lq:rq+1],localdraw,1)
-        lq = str.find(card,'{',lq)
+        lq = str.find(card,'{',lq+1)
         rq = str.find(card,'}',lq+1)
     lq = str.find(card,'[')
     rq = str.find(card,']',lq+1)
