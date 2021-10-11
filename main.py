@@ -339,6 +339,14 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             status,isMultiReply ,reply = rd.EN(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
         return 1
+    elif message.startswith('coc'):
+        if message == 'coc':
+            message = '1'
+        else:
+            message = str.strip(message[3:])
+        status,isMultiReply,reply = dice_command.coc_card_new.callCOC(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+        dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
+        return 1
     elif message.startswith('master'):
         if message == 'master':
             if User_ID == RainyDice.bot.data[plugin_event.platform['platform']+'_master']:

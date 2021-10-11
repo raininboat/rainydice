@@ -40,3 +40,5 @@ from rainydice.dice_command import ra_command
 from rainydice.dice_command import jrrp_command
 # .draw 抽卡模块
 from rainydice.dice_command import draw_command
+# .coc 人物卡做成
+from rainydice.dice_command import coc_card_new

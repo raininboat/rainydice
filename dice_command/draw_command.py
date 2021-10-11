@@ -29,11 +29,8 @@
 '''
 
 from random import randint
-# from rainydice.dice_command import card_deck
 from rainydice.dice_command import cal_btree
 from rainydice.dice_command import public_deck
-# import card_deck
-# import cal_btree
 
 def strPublicDeckKey(publicDeck):
     '返回所有公共牌堆的名称'
@@ -57,7 +54,8 @@ def strPublicDeckKey(publicDeck):
         else:
             msgThisPage.append('\n')
     if msgThisPage != []:
-        msgAll.append(''.join(msgThisPage))
+        # 将最后剩下的牌堆写到最后一个页面，删去末尾的回车
+        msgAll.append(''.join(msgThisPage[:-1]))
     strkeylist = '\f'.join(msgAll)
     return strkeylist
 

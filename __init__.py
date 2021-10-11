@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.13' 
-explain = r'完善 draw help 帮助信息显示'
+version = '0.3.6-alpha.14' 
+explain = r'coc人物卡做成核心完成(未进行适配)'
 
 author = 'RainyZhou'
 import rainydice.main
