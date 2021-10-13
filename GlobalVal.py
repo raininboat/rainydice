@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         全局变量
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -42,7 +42,7 @@ class GlobalVal(object):
             return temp
         else:
             return 'Help Doc: '+key
-        
+
     def getGlobalMsg(self,key=''):
         if key in self.GlobalMsg:
             temp = self.GlobalMsg[key]
@@ -85,7 +85,7 @@ class GlobalVal(object):
         'logOnReply' : 'log记录开启！请使用.log off 暂停 或 .log end 结束并发送log至邮箱',
         'logOffReply' : 'log已关闭',
         'logEndReply' : 'log完成，正在生成文件并发送',
-        'authorationFailed' : '你没有本权限！',  
+        'authorationFailed' : '你没有本权限！',
         'getSysState' : '{botname}系统状态：\n{cpu}\n{memory}\n{dick}\n{local_time}\n插件已启动时间: {alive_time}',
         'strJrrpReply' : '{username}的今日人品值: {jrrp}',
         'strDrawReply' : '{username}的进行抽卡: \n{card}'

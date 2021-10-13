@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
     版本号控制实现，升级补丁
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -30,6 +30,7 @@
 from rainydice import version
 import sqlite3
 import json
+import os
 
 def version_updater(datapath,sqlversionFull,log):
     scriptVersion = diceversion(version)
@@ -44,12 +45,14 @@ def version_updater(datapath,sqlversionFull,log):
         log(5,'脚本文件版本和存档不符，无法适配！当前脚本版本：'+version+'，存档版本：'+sqlversionFull)
         return False
     if scriptVersion.micro > sqlVersion.micro or scriptVersion.releaseversion != sqlVersion.releaseversion:
-        if sqlVersion.lessthan(0,3,4):
+        if sqlVersion.lessthan(0,3,5):
             # 0.3.4 => 0.3.5 版本升级
-            # 将 bot.conf 中 tg_admin tg_master 转为 telegram_admin telegram_master
-            status = __update_0_3_4(datapath)
-            if status:
-                log(2,'完成 0.3.4 => 0.3.5 版本升级，内容：bot.json转换')
+            status = __update_0_3_5(datapath)
+            log(2,'完成 0.3.4 => 0.3.5 版本升级，内容：bot.json转换')
+        if sqlVersion.lessthan(0,3,7):
+            # 0.3.6 => 0.3.7 版本升级
+            status = __update_0_3_7(datapath)
+            log(2,'完成 0.3.6 => 0.3.7 版本升级，内容：重置decktmp.db')
         __sqlversionWrite(sqlpath,version)
         log(2,'当前脚本版本：'+version+'，存档版本：'+sqlversionFull+' , 已完成升级')
         return True
@@ -78,26 +81,28 @@ class diceversion(object):
             return False
         elif self.minor > minor:
             return False
-        elif self.micro > micro:
-            return False 
+        elif self.micro >= micro:
+            return False
         return True
 
 def __sqlversionWrite(sqlpath,version):
-    conn = __SQL(sqlpath)
-    presql = '''INSERT OR REPLACE INTO basic_info ('basic_key','basic_val') VALUES (?,?);'''
-    conn.cursor.execute(presql,('version',version))    
-    conn.connection.commit()
+    with sqlconn(sqlpath) as conn:
+        presql = '''INSERT OR REPLACE INTO basic_info ('basic_key','basic_val') VALUES (?,?);'''
+        conn.execute(presql,('version',version))
+        conn.commit()
 
-class __SQL(object):
-    def __init__(self,Path):
-        self.connection = sqlite3.connect(Path)
-        self.cursor = self.connection.cursor()
-        self.path = Path
-    def __del__(self):
-        self.cursor.close()
-        self.connection.close()
+class sqlconn(object):
+    # sql上下文管理实现（原 try/catch 块的 with 替代）
+    def __init__(self,path):
+        # print('start')
+        self.conn = sqlite3.connect(path)
+    def __enter__(self):
+        return self.conn
+    def __exit__(self,exc_type, exc_val, exc_tb):
+        self.conn.close()
+        # return 1
 
-def __update_0_3_4(path):
+def __update_0_3_5(path):
     # 0.3.4 => 0.3.5 版本升级
     # 将 bot.conf 中 tg_admin tg_master 转为 telegram_admin telegram_master
     botconfPath = path + '/conf/bot.json'
@@ -110,4 +115,12 @@ def __update_0_3_4(path):
         del botconf['tg_admin'] , botconf['tg_master']
         botconfjson = json.dumps(botconf,ensure_ascii=False,indent='    ',sort_keys=True)
         file.write(botconfjson)
-    return True    
+    return True
+
+def __update_0_3_7(path):
+    # 0.3.6 => 0.3.7 版本升级
+    # 删除临时decktmp.db内容（内部表格存储进行重构）
+    tmpdeckpath = path + '/temp/decktmp.db'
+    if os.path.isfile(tmpdeckpath):
+        os.remove(tmpdeckpath)
+    return True

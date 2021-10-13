@@ -2,12 +2,12 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -27,8 +27,8 @@
 
 '''
 
-version = '0.3.6-alpha.14' 
-explain = r'coc人物卡做成核心完成(未进行适配)'
+version = '0.3.7-alpha.1'
+explain = r'删除脚本末尾空格，适配draw外置牌堆'
 
 author = 'RainyZhou'
 import rainydice.main

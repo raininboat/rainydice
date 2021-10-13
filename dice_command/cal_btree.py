@@ -2,12 +2,12 @@
 '''
    ___  ___   _____  ____  __
   / _ \/ _ | /  _/ |/ /\ \/ /
- / , _/ __ |_/ //    /  \  / 
-/_/|_/_/ |_/___/_/|_/   /_/  
-                             
+ / , _/ __ |_/ //    /  \  /
+/_/|_/_/ |_/___/_/|_/   /_/
+
     四则运算实现(含d运算)
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -121,7 +121,7 @@ def __split(string:str):
     # defaultDicePoolSide = 10
     # MaxDice = 9999      # 设置的最大投掷数量结果
     MaxSplit = 999      # 最大切片数（即表达式运算长度限制）
-    pointer = 0         # 表达式扫描部分的指针    
+    pointer = 0         # 表达式扫描部分的指针
     for i in range(len(string)):
         if string[i] in sign:
             if pointer < i:
@@ -163,7 +163,7 @@ def __split(string:str):
         elif splitData[-1] == 'a':                # ---a10
             splitData.append(defaultDicePoolAdd)       # a后面添加默认加骰线
         elif splitData[-1] in ('p','b'):
-            splitData.append('1')  
+            splitData.append('1')
     if len(splitData) > MaxSplit:
         raise UserWarning('Split_Too_Much','表达式过长或过复杂:当前分片数量['+str(len(splitData))+']')
     return splitData
@@ -173,9 +173,9 @@ def __RPNchange(Input):
         '$' : 0 , '(' : 0,
         '+' : 1 , '-' : 1,
         '*' : 2 , '/' : 2,
-        'd' : 3 , 'k':3, 'q':3,'p':3,'a':3,'m':3,'b':3  
+        'd' : 3 , 'k':3, 'q':3,'p':3,'a':3,'m':3,'b':3
     }
-    
+
     calculate = []
     sign = []
     sign.append('$')
@@ -464,7 +464,7 @@ def __RPNcal(cal):
     sign = {
         '+' : 1 , '-' : 1,
         '*' : 2 , '/' : 2,
-        'd' : 3 , 'k':3, 'q':3,'p':3,'a':3,'m':3,'b':3  
+        'd' : 3 , 'k':3, 'q':3,'p':3,'a':3,'m':3,'b':3
     }
     # pointer = 0
     # while pointer < len(cal):
@@ -606,7 +606,7 @@ def __RPNcal(cal):
 
 
 def calculate(string:str,stepreturn = True):
-    '''dice rd 运算模块， string 为运算表达式， 
+    '''dice rd 运算模块， string 为运算表达式，
     返回 (状态(T) , result (int) , step (str) )
     或 (状态(F) , '' , error_str )'''
     string = string.lower()

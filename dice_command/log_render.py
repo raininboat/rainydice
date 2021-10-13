@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         跑团日志 log 记录， log文件生成模块
-    
-    Copyright (C) 2021  RainyZhou  
+
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -67,7 +67,7 @@ class LogDocx(object):
         logtime = strftime('%H:%M:%S',logline.time_arr)
         name = logline.name
         textlist = str.splitlines(logline.text)
-        
+
         for text in textlist:
             logtext = '<{name}> {text}'.format(name=name,text=text)
             para = self.doc.add_paragraph()
@@ -101,7 +101,7 @@ class LogHtml(object):
 class LogTxtRaw(object):
     def __init__(self,path):
         self.file = open(path+'raw.txt','w',encoding='utf-8',errors='ignore')
-    
+
     def logline(self,thisline:LogLine,colorid=None):
         name = thisline.name
         userid = thisline.id

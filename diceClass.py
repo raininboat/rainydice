@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         存储类
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -55,10 +55,10 @@ class Dice(object):
         self.bot = bot(Data_Path,log = log)
         self.group = Group(sql_path=self.sql_path,log = log)
         self.user = User(sql_path=self.sql_path,log = log)  # 用户信息先不读取，在开始使用时再进行读取
-        self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck) 
+        self.GlobalVal = GlobalVal.GlobalVal(cocrank=cocRankCheck)
         self.starttime = time.time()
         self.publicDeck = deckload(Data_Path,log)
-    
+
     def check_user_trust(self,userid,platform):
         '获取某一用户的信任度'
         if userid == self.bot.data[self.platform_list[platform]+'_master']:
@@ -123,18 +123,18 @@ class bot(object):
             f = open(Data_Path+'/conf/bot.json', 'r', encoding = 'utf-8')
             bot_conf = json.loads(f.read())
             f.close()
-            log(0,'已读取RainyDice配置文件 bot.json') 
+            log(0,'已读取RainyDice配置文件 bot.json')
         except:
-            log(2,'未找到RainyDice配置文件 bot.json ，即将新建...') 
-            log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json') 
+            log(2,'未找到RainyDice配置文件 bot.json ，即将新建...')
+            log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json')
             bot_conf = self.create_bot_conf(Data_Path,log)
         finally:
             if bot_conf == None:
-                log(3,'RainyDice配置文件 bot.json 错误！即将重置...') 
+                log(3,'RainyDice配置文件 bot.json 错误！即将重置...')
                 log(2,'请前往 plugin/data/rainydicr/conf 中进一步修改 bot.json')
                 bot_conf = self.create_bot_conf(Data_Path,log)
         self.data = bot_conf
-        
+
         logconf = {
             'csv' : True,
             "html" : False,
@@ -234,7 +234,7 @@ class bot(object):
         key + val填写则自动添加这一键值对（用于适配以前sql的用法）
         '''
         if key != None:
-            self.data[key] = value  
+            self.data[key] = value
         data = self.data
         s_json = json.dumps(data,ensure_ascii=False,indent='    ',sort_keys=True)
         f_conf = open(self.Data_Path+'/conf/bot.json',"w",encoding="utf-8")
@@ -261,7 +261,7 @@ class Group(dict):
         #self.jsonconf = ['Group_Setcoc','admin']
         self.singleconf = ['card','admin','name','log']
         self.statusconf = ['isBotOn','isPluginOn','isLogOn','isBanRecall']
-        # platform 为群组出自平台，qq 为 0，tg 为 1 
+        # platform 为群组出自平台，qq 为 0，tg 为 1
         pre_sql = '''CREATE TABLE IF NOT EXISTS GROUP_CONF(
     'Group_Platform'          integer              NOT NULL,
     'Group_ID'              integer           NOT NULL,
@@ -394,7 +394,7 @@ class Group(dict):
             self.log(4,'数据库错误，即将回滚!'+err.__str__())
             SQL_conn.connection.rollback()
             return False
-    
+
     # 添加新群组
     def add_group(self,Group_Platform,Group_ID,admin = [0],Group_Setcoc = 0,Group_Name = '群聊',Group_Owner=0,Group_Status = 3,Group_Trust = 0,isBotOn = True,isPluginOn = True,isLogOn = False):
         if Group_ID not in self[Group_Platform]['group_list']:
@@ -457,7 +457,7 @@ class User(dict):
             self[i]['user_list'] = list()
         SQL_conn = SQL(self.sql_path)
         self.jsonconf = []
-        # platform 为群组出自平台，qq 为 0，tg 为 1 
+        # platform 为群组出自平台，qq 为 0，tg 为 1
         pre_sql = '''CREATE TABLE IF NOT EXISTS USER_CONF(
     'U_Platform'          integer         NOT NULL,
     'U_ID'                integer         NOT NULL,
@@ -513,7 +513,7 @@ class User(dict):
         }
         sql_path = self.sql_path
         SQL_conn = SQL(sql_path)
-        
+
         try:
             #print('### trying to create tab')
             pre_sql =f''' CREATE TABLE IF NOT EXISTS user_%d_%d('user_key'  TEXT PRIMARY KEY NOT NULL , 'val_1' text, 'val_2' text);'''%(U_Platform,U_ID)
@@ -577,7 +577,7 @@ class User(dict):
             SQL_conn.connection.rollback()
             return False
         #else:
-        
+
     def get_card(self,platform , user_id):
         if user_id not in self[platform]['user_list']:
             self.add_user(U_Platform=platform,U_ID=user_id)
@@ -687,7 +687,7 @@ class User(dict):
                 card_id = len(card_id_list)
                 for i in range(card_id):
                     if i < card_id_list[i]:
-                        card_id = i 
+                        card_id = i
                         break
                 card_id_txt = 'card-'+str(card_id)
                 pre_sql = '''INSERT OR REPLACE INTO user_%d_%d('user_key','val_1','val_2') VALUES (?,?,?)'''%(platform,user_id)

@@ -2,12 +2,12 @@
 '''
    ___  ___   _____  ____  __
   / _ \/ _ | /  _/ |/ /\ \/ /
- / , _/ __ |_/ //    /  \  / 
-/_/|_/_/ |_/___/_/|_/   /_/  
-                             
+ / , _/ __ |_/ //    /  \  /
+/_/|_/_/ |_/___/_/|_/   /_/
+
     外置牌堆读取至临时数据库
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -65,12 +65,12 @@ def getDeckList(publicDeckPath):
 class DeckInfoTamplate(object):
     def __init__(self,thisfile):
         if type(thisfile) == list or type(thisfile) == tuple:
-            self.md5 = thisfile[0]
-            self.fileName = thisfile[1]
-            self.strDeckName = thisfile[2]
-            self.DeckName = sqlUnescape(thisfile[2])
-            self.title = thisfile[3]
-            self.namespace = thisfile[4]
+            self.namespace = thisfile[0]
+            self.md5 = thisfile[1]
+            self.fileName = thisfile[2]
+            self.strDeckName = thisfile[3]
+            self.DeckName = sqlUnescape(thisfile[3])
+            self.title = thisfile[4]
             self.dependence = sqlUnescape(thisfile[5])
             self.version = thisfile[6]
             self.author = thisfile[7]
@@ -87,18 +87,18 @@ class DeckInfoTamplate(object):
             self.author = thisfile['file_author']
             self.doc = thisfile['file_doc']
     def __str__(self):
-        string = '<DeckInfoTamplate: md5={0}, fileName={1}, strDeckDame={2}, title={3}, namespace={4}, dependence={5}, version={6}, author={7}, doc={8} >'
+        string = '<DeckInfoTamplate: namespace={4}, md5={0}, fileName={1}, strDeckDame={2}, title={3}, dependence={5}, version={6}, author={7}, doc={8} >'
         return string.format(self.md5,self.fileName,self.strDeckName,self.title,self.namespace,self.dependence.__str__(),self.version,self.author,self.doc)
 
 def getTmpSqlList(dataPath):
     tmpsqlpath = dataPath + '/temp/decktmp.db'
     # connTmpSql = sqlite3.connect(tmpsqlpath)
     presql = '''CREATE TABLE IF NOT EXISTS public_deck_all(
-        'File_MD5'      TEXT PRIMARY KEY UNIQUE,
+        'File_Namespace' TEXT PRIMARY KEY UNIQUE NOT NULL,
+        'File_MD5'      TEXT,
         'File_Name'     TEXT,
         'File_Key'      TEXT,
         'File_Title'    TEXT,
-        'File_Namespace' TEXT,
         'File_Dependence' TEXT,
         'File_Version'  TEXT,
         'File_Author'   TEXT,
@@ -136,11 +136,11 @@ def createDeckForm(dataPath,filemd5:str,filename:str,filejson:dict):
         cur = connTmpSql.cursor()
         # 【创建对应牌堆表格】
         presql = '''CREATE TABLE IF NOT EXISTS deck_{filemd5}(
-        'Deck_Name' text primary key,
+        'Deck_Name' text primary key NOT NULL UNIQUE,
         'Deck_CardList' text
     );'''.format(filemd5=filemd5)
         cur.execute(presql)
-        presql = '''INSERT INTO deck_{filemd5}('Deck_Name','Deck_CardList') VALUES (?,?);'''.format(filemd5=filemd5)
+        presql = '''INSERT OR REPLACE INTO deck_{filemd5}('Deck_Name','Deck_CardList') VALUES (?,?);'''.format(filemd5=filemd5)
         cardlistall = []
         for name,cardlist in filejson.items():
             if str.startswith(name,'$'):    # 牌堆元信息，
@@ -163,8 +163,8 @@ def createDeckForm(dataPath,filemd5:str,filename:str,filejson:dict):
         #print(cardlistall)
         cur.executemany(presql,cardlistall)
         # 【主表中登记信息】
-        presql = '''INSERT OR REPLACE INTO public_deck_all('File_MD5','File_Name','File_Key','File_Title','File_Namespace','File_Dependence','File_Version','File_Author','File_Doc') 
-        VALUES (:file_md5,:file_name,:file_key,:file_title,:file_namespace,:str_file_dependence,:file_version,:file_author,:file_doc);'''
+        presql = '''INSERT OR REPLACE INTO public_deck_all('File_Namespace','File_MD5','File_Name','File_Key','File_Title','File_Dependence','File_Version','File_Author','File_Doc')
+        VALUES (:file_namespace,:file_md5,:file_name,:file_key,:file_title,:str_file_dependence,:file_version,:file_author,:file_doc);'''
         fileMetaInfo['file_key'] = sqlEscape(deckkeys)
         # strdeckkeyall = sqlEscape(deckkeys)
         cur.execute(presql,fileMetaInfo)
@@ -229,52 +229,45 @@ def initPublicDeck(dataPath):
                     raise UserWarning('Json Invalid - '+filename)
                 deckkeys,metainfo = createDeckForm(dataPath,fileMD5,filename,filejson)
                 for i in deckkeys:          # 本牌堆所有公共卡组全部指向对应指针
-                    publicDeckListAll[i] = fileMD5
-                fileMetaInfoAll[fileMD5] = metainfo
-                    
+                    publicDeckListAll[i] = metainfo.namespace
+                fileMetaInfoAll[metainfo.namespace] = metainfo
+
             except Exception as err:
                 print(traceback.print_exc())
                 skipFiles.append(filename)
         else:
-            thisfile = tmpsqllist[fileMD5]
-            fileMetaInfoAll[fileMD5] = thisfile
-            strDeckKeys = thisfile.strDeckName
+            thisfileMetaInfo = tmpsqllist[fileMD5]
+            fileMetaInfoAll[thisfileMetaInfo.namespace] = thisfileMetaInfo
+            strDeckKeys = thisfileMetaInfo.strDeckName
             deckkeys = sqlUnescape(strDeckKeys)
             for i in deckkeys:
-                publicDeckListAll[i] = fileMD5
+                publicDeckListAll[i] = thisfileMetaInfo.namespace
     return publicDeckListAll,skipFiles,fileMetaInfoAll
 
-def getPublicDeckDict(dataPath,filemd5):
+def getPublicDeckDict(dataPath,*filemd5all):
     '从数据库读取对应的牌堆'
     deckdict = {}
     tmpsqlpath = dataPath + '/temp/decktmp.db'
+    presqllist = []
+    for filemd5 in filemd5all:
+        presqllist.append('''SELECT * FROM deck_{filemd5}'''.format(filemd5=filemd5))
+    presql = ' UNION '.join(presqllist)     # 使用联合查找
     with sqlconn(tmpsqlpath) as connTmpSql:
         cur = connTmpSql.cursor()
-        presql = '''SELECT * FROM deck_{filemd5};'''.format(filemd5=filemd5)
         cur.execute(presql)
         for name,strcardlist in cur.fetchall():
             cardlist = sqlUnescape(strcardlist)
             deckdict[name] = cardlist
     return deckdict
 
-def loadDeck(dataPath,fileMetaInfoDict:DeckInfoTamplate):
-    dependence = fileMetaInfoDict.dependence
-    deckdict = getPublicDeckDict(dataPath,fileMetaInfoDict.md5)
-    if dependence == []:
-        return deckdict
-    loaddeckmd5list = []
-    tmpsqlpath = dataPath + '/temp/decktmp.db'
-    with sqlconn(tmpsqlpath) as connTmpSql:
-        cur = connTmpSql.cursor()
-        for title in dependence:        
-            presql = '''SELECT File_MD5 FROM public_deck_all WHERE File_Namespace = ? '''
-            cur.execute(presql,(title,))
-            res = cur.fetchall()
-            for i in res:
-                if i[0] not in loaddeckmd5list:
-                    loaddeckmd5list.append(i[0])
-    for filemd5 in loaddeckmd5list:
-        deckdict.update(getPublicDeckDict(dataPath,filemd5))
+def loadDeck(dataPath,namespace,fileMetaInfoAll):
+    filemd5all = []
+    fileMetaInfo = fileMetaInfoAll[namespace]
+    filemd5all.append(fileMetaInfo.md5)
+    dependence = fileMetaInfo.dependence
+    for thisnamespace  in dependence:
+        filemd5all.append(fileMetaInfoAll[thisnamespace].md5)
+    deckdict = getPublicDeckDict(dataPath,*filemd5all)
     return deckdict
 
 # if __name__ == '__main__':

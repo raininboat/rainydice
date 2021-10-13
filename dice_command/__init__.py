@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         骰娘模块化实现
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -32,7 +32,7 @@
 
 # .system 指令模块
 from rainydice.dice_command import system_command
-# .log 模块 & log 内部记录和渲染接口 
+# .log 模块 & log 内部记录和渲染接口
 from rainydice.dice_command import chat_log
 # .ra 指令重构
 from rainydice.dice_command import ra_command

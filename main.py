@@ -2,14 +2,14 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         主文件
     其中编写内容有参考 仑质编写的[OlivaDice]<http://oliva.dice.center/> 特此鸣谢！
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -41,7 +41,7 @@ import json
 # global RainyDice
 class Event(object):
     # 初始化
-    def init(plugin_event, Proc):       # plugin_models_tmp.main.Event.init(plugin_event = None, Proc = self) 
+    def init(plugin_event, Proc):       # plugin_models_tmp.main.Event.init(plugin_event = None, Proc = self)
         bot_init(plugin_event, Proc)
         logtxt = 'RainyDice机器人['+RainyDice.bot.data['name'] + ']已加载完毕，['
         for i,v in RainyDice.platform_dict.items():
@@ -95,7 +95,7 @@ def bot_init(plugin_event,proc):
     try:
         with open(Data_Path+'/conf/ignore.json', 'r', encoding = 'utf-8') as ignore_conf_f:
             ignore_conf = json.loads(ignore_conf_f.read())
-            proc.log(0,'已读取RainyDice配置文件 ignore.json') 
+            proc.log(0,'已读取RainyDice配置文件 ignore.json')
     except:
         proc.log(2,'未找到RainyDice配置文件 ignore.json ，即将新建...')
         ignore_conf = create_ignore_conf(Data_Path=Data_Path,Proc=proc)
@@ -310,7 +310,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             name = str.strip(message)
             RainyDice.user.set('U_Name',name,Group_Platform,User_ID)
             reply = RainyDice.GlobalVal.GlobalMsg['nnReply'].format(User_Name=plugin_event.data.sender['nickname'],New_Name=name)
-            # 'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]'            
+            # 'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]'
             # reply =str.replace(reply,'[User_Name]',plugin_event.data.sender['nickname'])
             # reply =str.replace(reply,'[New_Name]',name)
             func_reply(isLogOn=isLogOn,reply=reply)
@@ -330,7 +330,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             message=str.strip(message[6:])
             status,isMultiReply ,reply = rd.SETCOC(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
-        return 1   
+        return 1
     elif message.startswith('en'):
         if message == 'en':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('en'))
@@ -362,7 +362,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
                 reply = RainyDice.GlobalVal.getGlobalMsg('authorationFailed')
                 func_reply(isLogOn=isLogOn,reply=reply)
         else:
-            pass            
+            pass
         return 1
     elif message.startswith('admin'):
         if message == 'admin':

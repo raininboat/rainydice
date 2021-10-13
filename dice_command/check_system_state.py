@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         系统状态监控（psutil转接口）
-    
-    Copyright (C) 2021  RainyZhou  
+
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -50,7 +50,7 @@ def LocalTime(formattime:str or None=None):
 def MemoryCheck():
     '''
     查看当前系统内存使用情况,可直接__str__()输出字符串结果
-    
+
     Memory: {used}GB / {total}GB => {percent}%
     '''
     return __MemoryCheck()
@@ -58,7 +58,7 @@ def MemoryCheck():
 def DickUsage(path:str or None=None):
     '''
     查看当前磁盘使用情况,path填写后可选择不同磁盘,可直接__str__()输出字符串结果
-    
+
     Dick Usage: {used}GB / {total}GB => {percent}%
     '''
     if path == None:
@@ -67,7 +67,7 @@ def DickUsage(path:str or None=None):
 
 def BootTime(timestamp:bool=False,formattime:str=None):
     '''
-    获取系统启动时间，timestamp 为 True 时直接返回timestamp 
+    获取系统启动时间，timestamp 为 True 时直接返回timestamp
     否则返回时间字符串（可用format自定义）
 
     %Y-%m-%d %H:%M:%S

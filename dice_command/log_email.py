@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         log 邮件发送模块
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -45,14 +45,14 @@ def __formatrawaddr(receiver_raw:list):
         receiver.append(i[1])
     return string[:-1],receiver
 # 添加附件
-def __att(path,filename,encoding='utf-8'): 
+def __att(path,filename,encoding='utf-8'):
     with open(path+filename,'r',encoding=encoding) as file:
         att1 = __MIMEText(file.read(), 'base64', encoding)
     att1["Content-Type"] = 'application/octet-stream'
     att1["Content-Disposition"] = 'attachment; filename="{0}"'.format(filename)
     return att1
 def __att2(path,filename):
-    file_msg = __MIMEBase('application', 'octet-stream')  
+    file_msg = __MIMEBase('application', 'octet-stream')
     with open(path+filename,mode='rb') as file:
         file_msg.set_payload(file.read())
     __encode_base64(file_msg)

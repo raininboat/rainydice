@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         ra 指令
-    
-    Copyright (C) 2021  RainyZhou  
+
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -65,11 +65,11 @@ def callRA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):
         Group_Setcoc = 0
     rankName = RainyDice.GlobalVal.GlobalVal['rankName']
     user_name = RainyDice.user[Group_Platform][User_ID]['U_Name']
-    
+
     status,result,step=cal_btree.calculate(sign_str)
     if not status:
         return -1,False,step
-    
+
     rank = RaSuccess(total = result, skill_val= skill_val, setcoc= Group_Setcoc, cocRankCheck=RainyDice.cocRankCheck)
     # 'raReply' : '{reason}{User_Name}进行{Skill_Name}检定:\n{step} / {Skill_Val} {rank}',
     reply = RainyDice.GlobalVal.GlobalMsg['raReply']
@@ -105,7 +105,7 @@ def RaSuccess(total,skill_val,setcoc=0,cocRankCheck:dict=None):
         if setcoc not in cocRankCheck:
             setcoc = 0
         if cocRankCheck[setcoc]['critical'](x,y):          # 大成功大失败判定默认版在 cocRankCheckDefault.py 中
-            rank = 1    # 大成功                                # 具体载入的版本为 data/rainydice/conf/rankcheck.py 
+            rank = 1    # 大成功                                # 具体载入的版本为 data/rainydice/conf/rankcheck.py
             return rank                                         # 对象位置在 RainyDice.cocRankCheck
         elif cocRankCheck[setcoc]['fumble'](x,y):
             rank = 6    # 大失败

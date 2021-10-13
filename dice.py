@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         投掷模块
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -44,7 +44,7 @@ class rolldice(object):
         if setcoc not in self.cocRankCheck:
             setcoc = 0
         if self.cocRankCheck[setcoc]['critical'](x,y):          # 大成功大失败判定默认版在 cocRankCheckDefault.py 中
-            rank = 1    # 大成功                                # 具体载入的版本为 data/rainydice/conf/rankcheck.py 
+            rank = 1    # 大成功                                # 具体载入的版本为 data/rainydice/conf/rankcheck.py
             return rank                                         # 对象位置在 RainyDice.cocRankCheck
         elif self.cocRankCheck[setcoc]['fumble'](x,y):
             rank = 6    # 大失败
@@ -96,7 +96,7 @@ class rolldice(object):
             replace['DiceStep']=''
             #reply = str.replace(reply,'[DiceStep]=','')
         replace['Result']=str(result)
-        
+
         if isRH and group_id != 0:
             replace['Group_Name'] = RainyDice.group[platform][group_id]['Group_Name']
             replace['Group_ID'] = group_id
@@ -118,7 +118,7 @@ class rolldice(object):
             reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
             return -1 ,False, reply
         scExp = str.split(message,'/',1)
-        
+
         card = RainyDice.user.get_card(platform=platform,user_id=user_id)
         # skill_name = '理智'
         # print(card['data'])
@@ -152,7 +152,7 @@ class rolldice(object):
             status,sanlose,step = calculate(scExp[0])
             if status ==False:
                 return -1 ,False, step
-            replace['San_Lose_Expression'] = scExp[1]        
+            replace['San_Lose_Expression'] = scExp[1]
         nowSan = san - sanlose
         if nowSan <= 0 :
             nowSan = 0
@@ -189,7 +189,7 @@ class rolldice(object):
                 return 1,False,reply
             else:
                 reply = RainyDice.GlobalVal.GlobalMsg['InputErr']
-                return -1 ,False,reply        
+                return -1 ,False,reply
         elif message.find('?') != -1:
             st = message.split('?',1)
             reply = RainyDice.GlobalVal.GlobalMsg['stNewCardReply']
@@ -373,7 +373,7 @@ class rolldice(object):
             'Change_Result' : change_result_str,
             'Skill_Val_Result' : str(skill_changed)
         }
-        reply = str.format_map(reply,replace)            
+        reply = str.format_map(reply,replace)
         return True , card , reply
 
     def LI(self,plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):

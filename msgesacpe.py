@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         消息转义
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -28,7 +28,7 @@
 
 '''
 import re as _re
-from html import escape as _htmlescape , unescape as _htmlunescape 
+from html import escape as _htmlescape , unescape as _htmlunescape
 
 class messageEscape(object):
     '''
@@ -82,7 +82,7 @@ class messageEscape(object):
         & 默认转义，如果消息来自cq框架已经转义过则输入 False 不再进行操作
         '''
         if amp:
-          string = string.replace('&','&amp;')  
+          string = string.replace('&','&amp;')
         repldict = {
             ' ' : '&nbsp;',
             '"' : '&#34;',

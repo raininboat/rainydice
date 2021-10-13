@@ -2,13 +2,13 @@
 '''
    ___  ___   _____  ____  __
   / _ \/ _ | /  _/ |/ /\ \/ /
- / , _/ __ |_/ //    /  \  / 
-/_/|_/_/ |_/___/_/|_/   /_/  
-                             
+ / , _/ __ |_/ //    /  \  /
+/_/|_/_/ |_/___/_/|_/   /_/
+
     draw 抽卡模块
     内置牌堆详见 card_deck.py
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -134,11 +134,10 @@ def callDraw(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID
         reply = '全牌堆列表：\n'+strPublicDeckKey(RainyDice.publicDeck)
     else:
         try:
-            if message in RainyDice.publicDeck.decks.keys():
-                deckinfo = RainyDice.publicDeck.metaInfo[RainyDice.publicDeck.decks[message]]
-            else:
+            if message not in RainyDice.publicDeck.decks.keys():
+                # print(message,RainyDice.publicDeck.decks.keys())
                 raise UserWarning(message + ' not found')
-            deckall = public_deck.loadDeck(RainyDice.data_path,deckinfo)
+            deckall = public_deck.loadDeck(RainyDice.data_path,RainyDice.publicDeck.decks[message],RainyDice.publicDeck.metaInfo)
             reply = reply.format(username=user_name,card=drawCard(message,deckall)[0])
         except UserWarning as err:
             reply = '抽卡错误！ '+err.__str__()

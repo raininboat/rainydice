@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         系统控制模块 (system 指令)
-    
-    Copyright (C) 2021  RainyZhou  
+
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -34,7 +34,7 @@ from rainydice.dice_command import check_system_state,chat_log
 # --------------------- #
 # .system xxx 功能实现  #
 # --------------------- #
-def getSysState(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):    
+def getSysState(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):
     '获取系统状态'
     # '{botname}系统状态：\n{cpu}\n{memory}\n{dick}\n{local_time}'
     replyfmt = RainyDice.GlobalVal.getGlobalMsg('getSysState')

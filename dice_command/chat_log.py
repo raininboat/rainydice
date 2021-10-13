@@ -2,13 +2,13 @@
 '''
        ___  ___   _____  ____  __
       / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  / 
-    /_/|_/_/ |_/___/_/|_/   /_/  
+     / , _/ __ |_/ //    /  \  /
+    /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
         log 模块
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -193,7 +193,6 @@ def log_cmd(plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,gro
                     reply = '未完成qq以外平台的email发送，请联系管理员获取log！\n文件：'+log_path+'*.*'
             else:
                 reply = 'email发送模块关闭，请联系管理员获取log！\n文件：'+log_path+'*.*'
-            
             # reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
         else:
             reply = log_path

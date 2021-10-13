@@ -2,12 +2,12 @@
 '''
    ___  ___   _____  ____  __
   / _ \/ _ | /  _/ |/ /\ \/ /
- / , _/ __ |_/ //    /  \  / 
-/_/|_/_/ |_/___/_/|_/   /_/  
-                             
+ / , _/ __ |_/ //    /  \  /
+/_/|_/_/ |_/___/_/|_/   /_/
+
     外置牌堆读取至临时数据库
 
-    Copyright (C) 2021  RainyZhou  
+    Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
 
     This file is part of RainyDice.
@@ -34,9 +34,9 @@ from rainydice.dice_command import coc7_constant
 
 
 COC_CARD_SHORT_TAMPLATE = '''\
-力量:{力量}, 敏捷:{敏捷}, 意志:{意志}, 
-体质:{体质}, 外貌:{外貌}, 教育:{教育}, 
-体型:{体型}, 智力:{智力}, 幸运:{幸运}, 
+力量:{力量}, 敏捷:{敏捷}, 意志:{意志},
+体质:{体质}, 外貌:{外貌}, 教育:{教育},
+体型:{体型}, 智力:{智力}, 幸运:{幸运},
 生命:{生命}, 魔法:{魔法}, DB: {DB}
 总计: {total_without_luck} / {total_with_luck}
 '''
@@ -57,7 +57,7 @@ def creatCardCoc():
     for i,v in COC_CARD_ATTR_TAMPLATE.items():
         v = v.format_map(card)
         card[i] = int(cal_btree.calculate(v,False))
-    card = cocAutoCal(card)    
+    card = cocAutoCal(card)
     return card
 
 def cocAutoCal(card):
