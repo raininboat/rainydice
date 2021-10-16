@@ -27,10 +27,10 @@
 
 '''
 
-version = '0.3.7-alpha.1'
-explain = r'删除脚本末尾空格，适配draw外置牌堆'
+RainyDice_Version = '0.3.7-alpha.2'
+RainyDice_UpdateExplain = r'新增消息发送模块'
 
-author = 'RainyZhou'
+RainyDice_Author = 'RainyZhou'
 import rainydice.main
 # import rainydice.dice
 # import rainydice.GlobalVal

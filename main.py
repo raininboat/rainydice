@@ -32,7 +32,7 @@ import os
 import time
 import sys
 import OlivOS
-from rainydice import explain
+from rainydice import RainyDice_UpdateExplain as explain
 from rainydice.dice import rolldice
 from rainydice.diceClass import Dice
 from rainydice.cocRankCheckDefault import create_cocRankCheck
@@ -64,7 +64,7 @@ class Event(object):
     # onebot框架heartbeat
     def heartbeat(plugin_event, Proc):
         # 每次heartbeat检测当前cpu使用情况
-        if dice_command.check_system_state.CpuPercent().percent >=90:
+        if dice_command.check_system_status.CpuPercent().percent >=90:
             Proc.log(3,'cpu 当前使用百分比超90%！')
         # heartbeat_reply(plugin_event,Proc)
     def group_file_upload(plugin_event, Proc):
@@ -111,7 +111,7 @@ def bot_init(plugin_event,proc):
     else:
         cocRankCheck=create_cocRankCheck(Data_Path+'/conf/rankcheck.py')
         proc.log(2,'RainyDice配置文件 rankcheck.py 不存在，即将新建...')
-    dice_command.check_system_state.CpuPercent()
+    dice_command.check_system_status.CpuPercent()
     global RainyDice
     RainyDice = Dice(Data_Path,log=proc.log,ignore=ignore_conf,cocRankCheck=cocRankCheck)
 
@@ -221,6 +221,8 @@ def group_reply(plugin_event, Proc):
         return None
     message=message[1:].lower()
     command_run(message,plugin_event,Proc,User_ID,Group_Platform,Group_ID,isLogOn)
+    return None
+
 def group_message_recall_reply(plugin_event, Proc):
     Group_Platform = RainyDice.platform_dict[plugin_event.platform['platform']]
     Group_ID = int(plugin_event.data.group_id)
@@ -239,36 +241,25 @@ def group_message_recall_reply(plugin_event, Proc):
     plugin_event.reply(reply)
 
 def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=0,isLogOn=False):
+    msg_send = dice_command.message_send.Message_Send_All(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,flag_proc_log=True,flag_chat_log=isLogOn)
     # cal = rainydice.rainydice.calculate.RPN()
     Group_Platform = Platform
     rd = rolldice(RainyDice.cocRankCheck)
     message = message.strip()
-    def func_reply(reply:str,isLogOn=False):
+    def func_reply(reply:str,isLogOn=False,fmtdict={}):
         '直接回复消息，同时记录log'
-        plugin_event.reply(reply)
-        Proc.log(0,'[RainyDice]reply:'+reply)
-        if isLogOn:
-            log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
-            if 0 in dict.keys(RainyDice.group[Group_Platform][Group_ID]['log']):
-                log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
-            else:
-                log_name = 'log_{0:d}_{1:d}_{2:d}'.format(Group_Platform,Group_ID,time.time().__int__())
-                RainyDice.group.set('log',(0,log_name),Group_Platform,Group_ID)
-                dice_command.chat_log.log_create(RainyDice.bot,log_name)
-            log_name = RainyDice.group[Group_Platform][Group_ID]['log'][0]
-            group_name = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
-            self_id = plugin_event.base_info['self_id']
-            self_name = RainyDice.bot.data['name']
-            dice_command.chat_log.log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=reply,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)
-
+        replyobj = dice_command.message_send.Msg_Reply(reply,formatDict=fmtdict,flag_chat_log=isLogOn)
+        msg_send.attach(replyobj)
+        msg_send.send()
     if message.startswith('ra') or message.startswith('rc'):
         if message == 'ra' or message == 'rc':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('ra'))
         else:
             message=message[2:]
             # 返回 (状态码(判断是否正常，或错误类型，目前没搞只是留好接口),是否为多处回复（T/F）,单回复信息或(('reply',message),('send',target_type,target_id,message),...))
-            status,isMultiReply ,reply = dice_command.ra_command.callRA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
+            reply = dice_command.ra_command.callRA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            msg_send.attach(reply)
+            msg_send.send()
         return 1
     elif message.startswith('sc'):
         if message == 'sc':
@@ -310,9 +301,6 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             name = str.strip(message)
             RainyDice.user.set('U_Name',name,Group_Platform,User_ID)
             reply = RainyDice.GlobalVal.GlobalMsg['nnReply'].format(User_Name=plugin_event.data.sender['nickname'],New_Name=name)
-            # 'nnReply' : '已将[User_Name]的用户名称改为：[New_Name]'
-            # reply =str.replace(reply,'[User_Name]',plugin_event.data.sender['nickname'])
-            # reply =str.replace(reply,'[New_Name]',name)
             func_reply(isLogOn=isLogOn,reply=reply)
         return 1
     elif message.startswith('li'):
@@ -397,11 +385,11 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
     elif message.startswith('system'):
         if message == 'system':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('system'))
-        elif message[6:].strip().startswith('status') or message[6:].strip().startswith('state'):
+        elif message[6:].strip().startswith('status') or message[6:].strip().startswith('stats'):
             reply = dice_command.system_command.getSysState(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
             func_reply(isLogOn=isLogOn,reply=reply)
         elif message[6:].strip().startswith('restart'):
-            dice_command.system_command.callSysRestart(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID,isLogOn=isLogOn)
+            dice_command.system_command.callSysRestart(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID,msg_send)
         else:
             reply = '未完成 '+message[6:]
             func_reply(isLogOn=isLogOn,reply=reply)

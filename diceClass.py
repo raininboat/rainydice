@@ -29,7 +29,7 @@
 '''
 
 from rainydice import GlobalVal
-from rainydice import version,author
+from rainydice import RainyDice_Version as version,RainyDice_Author as author
 from rainydice.msgesacpe import messageEscape
 from rainydice.dice_command import public_deck
 import rainydice.versionAdapter as versionAdapter

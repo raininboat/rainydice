@@ -30,7 +30,7 @@
 
 from rainydice.dice_command import cal_btree
 from rainydice.dice_command import coc7_constant as cons
-from random import randint
+from rainydice.dice_command import message_send
 from rainydice.cocRankCheckDefault import cocRankCheck as defaultRankCheck
 import re
 
@@ -40,7 +40,8 @@ def callRA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):
     reobj = re.match(refmt,message)
     # ('p52', 'h', '测试', '93', '原因')
     if reobj == None:
-        return -1,False,RainyDice.GlobalVal.GlobalMsg['InputErr']
+        return message_send.Msg_Reply(RainyDice.GlobalVal.GlobalMsg['InputErr'])
+        # _return -1,False,RainyDice.GlobalVal.GlobalMsg['InputErr']
     sign_str,isrh,skill_name,skill_val_str,reason=reobj.groups()
     if sign_str == None:
         sign_str = '1d100'
@@ -68,7 +69,8 @@ def callRA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):
 
     status,result,step=cal_btree.calculate(sign_str)
     if not status:
-        return -1,False,step
+        return message_send.Msg_Reply(step)
+        # _return -1,False,step
 
     rank = RaSuccess(total = result, skill_val= skill_val, setcoc= Group_Setcoc, cocRankCheck=RainyDice.cocRankCheck)
     # 'raReply' : '{reason}{User_Name}进行{Skill_Name}检定:\n{step} / {Skill_Val} {rank}',
@@ -83,16 +85,19 @@ def callRA(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):
         'Skill_Val' : skill_val,
         'rank' : rankName[rank]
     }
-    reply = reply.format_map(fmtdict)
+    # reply = reply.format_map(fmtdict)
     if isrh:
         group_reply = RainyDice.GlobalVal.GlobalMsg['rhGroupReply']
-        group_reply = str.format(group_reply,User_Name=user_name)#User_Name=user_name)
+        # group_reply = str.format(group_reply,User_Name=user_name)#User_Name=user_name)
         # plugin_event.reply(group_reply)
-        reply = '在['+RainyDice.group[Group_Platform][Group_ID]['Group_Name']+']('+str(Group_ID)+')中，'+reply
+        fmtdict['Group_Name'] = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
+        fmtdict['Group_ID'] = Group_ID
+        reply = '在[{Group_Name}]({Group_ID})中，'+reply
         # plugin_event.send('private',user_id,reply)
-        return 2 , True , (('reply',group_reply),('send','private',User_ID,reply))
+        return message_send.Msg_Reply(group_reply,fmtdict),message_send.Msg_Send(textRaw=reply,formatDict=fmtdict,platform=Group_Platform,send_type='private',target_id=User_ID)
+        # _return 2 , True , (('reply',group_reply),('send','private',User_ID,reply))
     else:
-        return 1 , False , reply
+        return message_send.Msg_Reply(textRaw=reply,formatDict=fmtdict)
 # ----------------
 # - 内部 api 实现 -
 # ----------------

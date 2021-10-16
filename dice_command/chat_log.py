@@ -201,6 +201,7 @@ def log_cmd(plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,gro
         return 0,False,'请检查指令',True
 
 def send_reply(plugin_event,proc,reply,RainyDice,isLogOn=False,isMultiReply=False,status=0,Group_Platform=0,Group_ID=0):
+    '【已弃用】 回复消息请使用 dice_command.message_send 进行构造发送'
     if isMultiReply:
         for replypack in reply:
             if replypack[0] == 'reply':

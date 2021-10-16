@@ -32,8 +32,11 @@
 
 # .system 指令模块
 from rainydice.dice_command import system_command
+from rainydice.dice_command import check_system_status
 # .log 模块 & log 内部记录和渲染接口
 from rainydice.dice_command import chat_log
+# 消息发送模块
+from rainydice.dice_command import message_send
 # .ra 指令重构
 from rainydice.dice_command import ra_command
 # .jrrp 今日人品
