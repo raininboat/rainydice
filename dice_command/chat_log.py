@@ -32,7 +32,7 @@ import time
 import sqlite3
 import os
 
-from rainydice.dice_command import log_email,log_render
+from rainydice.dice_command import log_email,log_render,message_send
 from rainydice.msgesacpe import messageEscape
 
 class _log_conf(object):
@@ -145,60 +145,6 @@ def log_end(botinfo,log_name):
         cur.close()
         SQL_conn.close()
     return status,log_path
-
-
-def log_cmd(plugin_event,Proc,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
-    if message.startswith('on'):
-        # log on 开始记录（创建表格）
-        if RainyDice.group[platform][group_id]['isLogOn']:
-            reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOn']
-            return 0,False,reply,True
-        RainyDice.group.set('isLogOn',True,platform,group_id)
-        if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
-            log_name = RainyDice.group[platform][group_id]['log'][0]
-        else:
-            log_name = 'log_{0:d}_{1:d}_{2:d}'.format(platform,group_id,time.time().__int__())
-            RainyDice.group.set('log',(0,log_name),platform,group_id)
-            log_create(RainyDice.bot,log_name)
-        reply= RainyDice.GlobalVal.GlobalMsg['logOnReply']
-        return 0,False,reply,True
-    elif message.startswith('off'):
-        # log off 暂停记录
-        if not RainyDice.group[platform][group_id]['isLogOn']:
-            reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
-            return 0,False,reply,False
-        RainyDice.group.set('isLogOn',False,platform,group_id)
-        reply= RainyDice.GlobalVal.GlobalMsg['logOffReply']
-        return 0,False,reply,False
-    elif message.startswith('end'):
-        # log end 关闭记录(删除表格)并输出
-        if not RainyDice.group[platform][group_id]['isLogOn']:
-            reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
-            if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
-                RainyDice.group.del_conf('log',0,platform,group_id)
-        log_name = RainyDice.group[platform][group_id]['log'][0]
-        RainyDice.group.del_conf('log',0,platform,group_id)
-        RainyDice.group.set('isLogOn',False,platform,group_id)
-        status,log_path = log_end(RainyDice.bot,log_name)
-        if status:
-            if RainyDice.bot.data['email']['enabled']:
-                if platform == 0:
-                    receiver = [(RainyDice.user[platform][user_id]['U_Name'],str(user_id)+"@qq.com")]
-                    status = log_email.send_email(RainyDice.bot.data,log_path,receiver)
-                    if status:
-                        reply = '发送log至邮箱成功！请前往发送者账号的qq邮箱获取（如果找不到就去垃圾邮件中寻找）'
-                    else:
-                        reply = '发送log至邮箱失败！请联系管理员获取log！\n文件：'+log_path+'*.*'
-                else:
-                    reply = '未完成qq以外平台的email发送，请联系管理员获取log！\n文件：'+log_path+'*.*'
-            else:
-                reply = 'email发送模块关闭，请联系管理员获取log！\n文件：'+log_path+'*.*'
-            # reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
-        else:
-            reply = log_path
-        return 0,False,reply,False
-    else:
-        return 0,False,'请检查指令',True
 
 def send_reply(plugin_event,proc,reply,RainyDice,isLogOn=False,isMultiReply=False,status=0,Group_Platform=0,Group_ID=0):
     '【已弃用】 回复消息请使用 dice_command.message_send 进行构造发送'

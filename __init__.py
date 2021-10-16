@@ -27,8 +27,8 @@
 
 '''
 
-RainyDice_Version = '0.3.7-alpha.2'
-RainyDice_UpdateExplain = r'新增消息发送模块'
+RainyDice_Version = '0.3.7-alpha.3'
+RainyDice_UpdateExplain = r'重构log end记录模块'
 
 RainyDice_Author = 'RainyZhou'
 import rainydice.main

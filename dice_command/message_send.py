@@ -60,8 +60,14 @@ class Message_Send_All(object):
             else:
                 raise TypeError('sendObj type err: ' + sendObj.__class__.__name__)
 
+    def clear(self):
+        del self.sendlist , self.replylist
+        self.sendlist = []
+        self.replylist = []
+        return True
+
     def send(self):
-        # 消息发送，需要先使用attach将对应消息块加入消息回复实例中
+        # 消息发送，需要先使用attach将对应消息块加入消息回复暂存区中
         # 发送部分（私聊信息or其他平台）
         for thisMsg in self.sendlist:
             tmpfmtdict = self.data.fmtdata.copy()
@@ -73,7 +79,7 @@ class Message_Send_All(object):
                 if self.flag_proc_log:
                     self.proc.log(0,'[RainyDice] send['+str(thisMsg.platform)+']['+thisMsg.send_type+']('+str(thisMsg.target_id)+') - '+msg)
                 if thisMsg.flag_chat_log:
-                    pass    
+                    pass
                     # 私聊的 chat_log 先不做
 
         # 直接回复部分
@@ -108,7 +114,9 @@ class Message_Send_All(object):
                         group_id=self.data.fmtdata['group_id'],
                         group_name=self.RainyDice.group[self.data.platform_id][self.data.fmtdata['group_id']]['Group_Name']
                     )
-                
+        # 清空暂存区所有已经发送的内容
+        self.clear()
+
 class Msg_Data_Basic(object):
     def __init__(self,plugin_event,proc,RainyDice):
         self.self_id = plugin_event.base_info['self_id']
@@ -167,6 +175,17 @@ class Msg_Send(object):
         self.target_id = target_id
         self.flag_chat_log = flag_chat_log
         self.formatDict = formatDict
+    def extend(self,textRaw:str,formatDict={},reverse=False,flag_chat_log=None):
+        if flag_chat_log != None:
+            self.flag_chat_log = flag_chat_log
+        if reverse:
+            self.datastr = textRaw+self.datastr
+            self.formatDict.update(formatDict)
+            # self.formatDict=formatDict.update(self.formatDict)
+        else:
+            self.datastr = self.datastr+textRaw
+            print(self.formatDict)
+            self.formatDict.update(formatDict)
 
 class Msg_Reply(object):
     def __init__(self,textRaw:str,formatDict={},flag_chat_log=None,**otherstastus):
@@ -176,3 +195,92 @@ class Msg_Reply(object):
         self.send_type = 'reply'
         self.formatDict = formatDict
         self.flag_chat_log = flag_chat_log
+    def extend(self,textRaw:str,formatDict={},reverse=False,flag_chat_log=None):
+        if flag_chat_log != None:
+            self.flag_chat_log = flag_chat_log
+        if reverse:
+            self.datastr = textRaw+self.datastr
+            self.formatDict.update(formatDict)
+            # self.formatDict=formatDict.update(self.formatDict)
+        else:
+            self.datastr = self.datastr+textRaw
+            print(self.formatDict)
+            self.formatDict.update(formatDict)
+
+def log_cmd(msg_obj:Message_Send_All,RainyDice,message:str,user_id:int,platform:int,group_id = 0):
+    if message.startswith('on'):
+        # log on 开始记录（创建表格）
+        if RainyDice.group[platform][group_id]['isLogOn']:
+            msg_obj.attach(Msg_Reply(RainyDice.GlobalVal.GlobalMsg['logAlreadyOn']))
+            msg_obj.send()
+            return None
+        RainyDice.group.set('isLogOn',True,platform,group_id)
+        if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
+            log_name = RainyDice.group[platform][group_id]['log'][0]
+        else:
+            log_name = 'log_{0:d}_{1:d}_{2:d}'.format(platform,group_id,time.time().__int__())
+            RainyDice.group.set('log',(0,log_name),platform,group_id)
+            chat_log.log_create(RainyDice.bot,log_name)
+        reply= RainyDice.GlobalVal.GlobalMsg['logOnReply']
+        msg_obj.attach(Msg_Reply(reply,flag_chat_log=True))
+        msg_obj.send()
+        return None
+    elif message.startswith('off'):
+        # log off 暂停记录
+        if not RainyDice.group[platform][group_id]['isLogOn']:
+            reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
+            msg_obj.attach(Msg_Reply(reply))
+            msg_obj.send()
+            return None
+        RainyDice.group.set('isLogOn',False,platform,group_id)
+        reply= RainyDice.GlobalVal.GlobalMsg['logOffReply']
+        msg_obj.attach(Msg_Reply(reply))
+        msg_obj.send()
+        return None
+    elif message.startswith('end'):
+        # log end 关闭记录(删除表格)并输出
+        if not RainyDice.group[platform][group_id]['isLogOn']:
+            reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
+            if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
+                RainyDice.group.del_conf('log',0,platform,group_id)
+            msg_obj.attach(Msg_Reply(reply))
+            msg_obj.send()
+            return None
+        log_name = RainyDice.group[platform][group_id]['log'][0]
+        reply = Msg_Reply('跑团记录已结束！正在生成记录文件 {file_name} ...',{'file_name':log_name})
+        msg_obj.attach(reply)
+        msg_obj.send()
+        RainyDice.group.del_conf('log',0,platform,group_id)
+        RainyDice.group.set('isLogOn',False,platform,group_id)
+        status,log_path = chat_log.log_end(RainyDice.bot,log_name)
+        reply = Msg_Reply('文件生成成功！',flag_chat_log= False)
+        if status:
+            if RainyDice.bot.data['email']['enabled']:
+                if platform == 0:
+                    receiver = [(RainyDice.user[platform][user_id]['U_Name'],str(user_id)+"@qq.com")]
+                    reply.extend('正在发送邮件至邮箱: {email_addr}',formatDict={'email_addr' : str(user_id)+"@qq.com"})
+                    msg_obj.attach(reply)
+                    msg_obj.send()
+                    status = chat_log.log_email.send_email(RainyDice.bot.data,log_path,receiver)
+                    if status:
+                        reply = Msg_Reply('发送log至邮箱成功！请前往发送者账号的qq邮箱获取（如果找不到就去垃圾邮件中寻找）',flag_chat_log=False)
+                        msg_obj.attach(reply)
+                    else:
+                        reply = Msg_Reply('发送log至邮箱失败！请联系管理员获取log！\n文件：{log_path}*.*',{'log_path' : log_path},flag_chat_log=False)
+                        msg_obj.attach(reply)
+                else:
+                    reply.extend('未完成qq以外平台的email发送，请联系管理员获取log！\n文件：{log_path}*.*',{'log_path' : log_path},flag_chat_log=False)
+                    msg_obj.attach(reply)
+            else:
+                reply.extend('email发送模块关闭，请联系管理员获取log！\n文件：'+log_path+'*.*',{'log_path' : log_path},flag_chat_log=False)
+                msg_obj.attach(reply)
+            # reply= RainyDice.GlobalVal.GlobalMsg['logEndReply']
+        else:
+            reply = Msg_Reply(log_path,flag_chat_log=False)
+            msg_obj.attach(reply)
+        msg_obj.send()
+        return None
+    else:
+        msg_obj.attach(Msg_Reply('请检查指令'))
+        msg_obj.send()
+        return None

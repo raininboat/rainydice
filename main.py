@@ -368,8 +368,8 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('log'))
         else:
             message = str.strip(message[3:])
-            status,isMultiReply ,reply,isLogOn = dice_command.chat_log.log_cmd(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
-            dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
+            # 直接内部发送
+            dice_command.message_send.log_cmd(msg_send,RainyDice,message,User_ID,Group_Platform,Group_ID)
         return 1
     elif message.startswith('help'):
         if message == 'help':
@@ -391,7 +391,7 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
         elif message[6:].strip().startswith('restart'):
             dice_command.system_command.callSysRestart(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID,msg_send)
         else:
-            reply = '未完成 '+message[6:]
+            reply = '未知指令 '+message[6:]
             func_reply(isLogOn=isLogOn,reply=reply)
         return 1
     elif message.startswith('jrrp'):

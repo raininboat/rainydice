@@ -27,7 +27,7 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-from rainydice import version
+from rainydice import RainyDice_Version as version
 import sqlite3
 import json
 import os
