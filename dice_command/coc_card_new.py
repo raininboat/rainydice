@@ -96,13 +96,13 @@ def coc7CreateDetail():
         _,val,step = cal_btree.calculate(exp)
         card[i] = int(val)
         card[i+'_step'] = step
-    card = coc7AutoCal(card)
+    card.update(coc7BuildDB(card['str']+card['siz']))
     return card
 
-def coc7AutoCal(card):
-    both = card['str']+card['siz']
+def coc6BuildDB(both):
+    card = {}
     card['DB'] = None
-    for i,v,j in coc7_constant.COC7_DB_BUILD:
+    for i,v,j in coc7_constant.COC6_DB_BUILD:
         if both <= j :
             card['DB'] = v
             card['Build'] = i
@@ -137,11 +137,11 @@ def coc6CreateDetail():
         _,val,step = cal_btree.calculate(exp)
         card[i] = int(val)
         card[i+'_step'] = step
-    card = coc7AutoCal(card)
+    card.update(coc6BuildDB(card['str']+card['siz']))
     return card
 
-def coc6AutoCal(card):
-    both = card['str']+card['siz']
+def coc7BuildDB(both):
+    card = {}
     card['DB'] = None
     for i,v,j in coc7_constant.COC7_DB_BUILD:
         if both <= j :

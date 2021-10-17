@@ -6,7 +6,7 @@
     /_/|_/_/ |_/___/_/|_/   /_/
 
     RainyDice 跑团投掷机器人服务 by RainyZhou
-        COC 7th 常量 内容部分参考 COC7th规则书 和 仑质编写的[OlivaDice]<http://oliva.dice.center/>
+        COC 6th&7th 常量 内容参考 COC7th规则书、COC6th规则书 和 [OlivaDice]<http://oliva.dice.center/>
 
     Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
@@ -34,12 +34,26 @@ def name_replace(skill_name):
     if skill_name in SkillNameReplace:
         skill_name = SkillNameReplace[skill_name]
     return skill_name
+
 def get_default_val(skill_name):
     skill_name = name_replace(skill_name)
     skill_val = 0
     if skill_name in skillDefaultVal:
         skill_val = skillDefaultVal[skill_name]
     return skill_val
+
+def get_weapon_val(weapon_name:str):
+    weapon_name = weapon_name.strip()
+    if weapon_name not in WeaponCOC7.keys():
+        return '0',False
+    weapon_val = WeaponCOC7[weapon_name]
+    if weapon_val[0] == '&':
+        return get_weapon_val(weapon_val[1:])
+    if '{DB}' in weapon_val:
+        return weapon_val,True
+    else:
+        return weapon_val,False
+
 # 技能初始值
 skillDefaultVal = {
     '会计' : 5,
@@ -279,46 +293,46 @@ COC7_DB_BUILD = [
 WeaponCOC7 = {
     '医学回复' : '1D3',
     '精神分析回复' : '1D3',
-    '徒手伤害' : '1D3+[DB]',
+    '徒手伤害' : '1D3+{DB}',
     '徒手' : '&徒手伤害',
     '空手' : '&徒手伤害',
-    '弓箭' : '1D6+[DB]/2',
-    '指虎' : '1D3+1+[DB]',
-    '长鞭' : '1D3+[DB]/2',
+    '弓箭' : '1D6+{DB}/2',
+    '指虎' : '1D3+1+{DB}',
+    '长鞭' : '1D3+{DB}/2',
     '火把' : '1D6',
     '电锯' : '2D8',
-    '包皮铁棍' : '1D8+[DB]',
-    '甩棍' : '1D8+[DB]',
-    '大型棍' : '1D8+[DB]',
-    '小型棍' : '1D6+[DB]',
-    '警棍' : '1D6+[DB]',
+    '包皮铁棍' : '1D8+{DB}',
+    '甩棍' : '1D8+{DB}',
+    '大型棍' : '1D8+{DB}',
+    '小型棍' : '1D6+{DB}',
+    '警棍' : '1D6+{DB}',
     '弩' : '1D8+2',
-    '绞索' : '1D6+[DB]',
-    '手斧' : '1D6+1+[DB]',
-    '手镰' : '1D6+1+[DB]',
-    '镰刀' : '1D6+1+[DB]',
-    '大型刀' : '1D8+[DB]',
-    '中型刀' : '1D4+2+[DB]',
-    '小型刀' : '1D4+[DB]',
+    '绞索' : '1D6+{DB}',
+    '手斧' : '1D6+1+{DB}',
+    '手镰' : '1D6+1+{DB}',
+    '镰刀' : '1D6+1+{DB}',
+    '大型刀' : '1D8+{DB}',
+    '中型刀' : '1D4+2+{DB}',
+    '小型刀' : '1D4+{DB}',
     '通电导线' : '&220v通电导线',
     '220v通电导线' : '2D8',
-    '双节棍' : '1D8+[DB]',
-    '投石' : '1D4+[DB]/2',
-    '手里剑' : '1D3+[DB]/2',
+    '双节棍' : '1D8+{DB}',
+    '投石' : '1D4+{DB}/2',
+    '手里剑' : '1D3+{DB}/2',
     '矛' : '1D8+1',
     '骑士长枪' : '1D8+1',
-    '掷矛' : '1D8+[DB]/2',
-    '大型剑' : '1D8+1+[DB]',
-    '中型剑' : '1D6+1+[DB]',
-    '佩剑' : '1D6+1+[DB]',
-    '重剑' : '1D6+1+[DB]',
-    '轻型剑' : '1D6+[DB]',
-    '剑杖' : '1D6+[DB]',
+    '掷矛' : '1D8+{DB}/2',
+    '大型剑' : '1D8+1+{DB}',
+    '中型剑' : '1D6+1+{DB}',
+    '佩剑' : '1D6+1+{DB}',
+    '重剑' : '1D6+1+{DB}',
+    '轻型剑' : '1D6+{DB}',
+    '剑杖' : '1D6+{DB}',
     '电棍' : '1D3',
     '电击枪' : '1D3',
-    '回旋镖' : '1D8+[DB]/2',
-    '战斗回力镖' : '1D8+[DB]/2',
-    '伐木斧' : '1D8+2+[DB]',
+    '回旋镖' : '1D8+{DB}/2',
+    '战斗回力镖' : '1D8+{DB}/2',
+    '伐木斧' : '1D8+2+{DB}',
     '燧发枪' : '1D6+1',
     '5.6mm小型自动手枪' : '1D6',
     '6.35mm短口手枪' : '1D6',

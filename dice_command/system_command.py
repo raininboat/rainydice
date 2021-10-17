@@ -67,6 +67,9 @@ def callSysRestart(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Gr
     Proc.log(2,msg_log)
 
     # 语句出自 /OlivOS/pluginAPI.py line 83   step_to_restart
-    Proc.Proc_info.rx_queue.put(OlivOS.API.Control.packet('restart_do', Proc.Proc_name), block=False)
+    if hasattr(Proc,'set_restart'):
+        Proc.set_restart()
+    else:
+        Proc.Proc_info.rx_queue.put(OlivOS.API.Control.packet('restart_do', Proc.Proc_name), block=False)
     return 1
 

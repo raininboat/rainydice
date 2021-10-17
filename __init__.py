@@ -28,7 +28,7 @@
 '''
 
 RainyDice_Version = '0.3.7-alpha.4'
-RainyDice_UpdateExplain = r'完成coc新卡做成'
+RainyDice_UpdateExplain = r'完成coc新卡做成, bug fix'
 
 RainyDice_Author = 'RainyZhou'
 import rainydice.main
