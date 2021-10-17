@@ -88,7 +88,8 @@ class GlobalVal(object):
         'authorationFailed' : '你没有本权限！',
         'getSysState' : '{botname}系统状态：\n{cpu}\n{memory}\n{dick}\n{local_time}\n插件已启动时间: {alive_time}',
         'strJrrpReply' : '{username}的今日人品值: {jrrp}',
-        'strDrawReply' : '{username}的进行抽卡: \n{card}'
+        'strDrawReply' : '{username}的进行抽卡: \n{card}',
+        'NewRandCard' : '{name}的{card_type}人物卡做成：\n{card}'
     }
     GlobalVal = {
         'rankName' : ["【未知情况】","大成功","极难成功","困难成功","成功","失败","大失败"],

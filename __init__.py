@@ -27,8 +27,8 @@
 
 '''
 
-RainyDice_Version = '0.3.7-alpha.3'
-RainyDice_UpdateExplain = r'重构log end记录模块'
+RainyDice_Version = '0.3.7-alpha.4'
+RainyDice_UpdateExplain = r'完成coc新卡做成'
 
 RainyDice_Author = 'RainyZhou'
 import rainydice.main
