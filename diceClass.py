@@ -27,7 +27,8 @@
     along with RainyDice.  If not, see <https://www.gnu.org/licenses/>
 
 '''
-
+from OlivOS.infoAPI import OlivOS_Version
+PLATFORM_VERSION_LEAST = '0.6.0'
 from rainydice import GlobalVal
 from rainydice import RainyDice_Version as version,RainyDice_Author as author
 from rainydice.msgesacpe import messageEscape
@@ -85,6 +86,9 @@ class deckload(object):
 
 class basic_info(object):
     def __init__(self,path,log):
+        ovo_version = versionAdapter.diceversion(OlivOS_Version)
+        if ovo_version.lessthan(0,5,0):
+            raise UserWarning('当前 OlivOS 版本过旧: {0}，RainyDice需求最低框架版本为{1}')
         sql_path = path + '/RainyDice.db'
         SQL_conn = SQL(sql_path)
         pre_sql = '''CREATE TABLE IF NOT EXISTS basic_info( 'basic_key' Text primary key NOT NULL UNIQUE ,'basic_val' text);'''

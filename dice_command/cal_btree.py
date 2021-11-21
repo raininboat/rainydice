@@ -107,7 +107,7 @@ class __BTree(object):
 
 
 
-def __split(string:str):
+def _split(string:str):
     splitData = []
     sign = (
         '+','-','*','/','(',')',
@@ -167,7 +167,7 @@ def __split(string:str):
     if len(splitData) > MaxSplit:
         raise UserWarning('Split_Too_Much','表达式过长或过复杂:当前分片数量['+str(len(splitData))+']')
     return splitData
-def __RPNchange(Input):
+def _RPNchange(Input):
     # 符号优先级
     calsign = {
         '$' : 0 , '(' : 0,
@@ -455,7 +455,7 @@ def __dicePool(diceCount=1,diceAdd=10,diceSuccess=8,diceSides=10):
 
 
 # 计算模块
-def __RPNcal(cal):
+def _RPNcal(cal):
     a = []
     x = 0
     y = 0
@@ -605,23 +605,43 @@ def __RPNcal(cal):
     return a.pop()
 
 
+class cal(object):
+    def __init__(self, string:str):
+        self.str_raw = string
+        self.flag_success = False               # 是否出错
+        self.error = None                       # 出错信息(list[类型,解释])
+        self.result = None
+        self.caltree = None
+        self.splitdata = None
+        self.result_step = None
+        self._roll_dice()
+        
+    def _roll_dice(self):
+        try:
+            self.splitdata = _split(self.str_raw.lower())
+            self.caltree = _RPNchange(self.splitdata)
+            self.result, self.result_step = _RPNcal(self.caltree)
+        except UserWarning as err:
+            print(err.__str__())
+            self.err = err.args
+    def __eq__(self, o):
+        return self.flag_success.__eq__(o) # super().__eq__(o)
+
 def calculate(string:str,stepreturn = True):
     '''dice rd 运算模块， string 为运算表达式，
     返回 (状态(T) , result (int) , step (str) )
     或 (状态(F) , '' , error_str )'''
     string = string.lower()
     try:
-        splitdata = __split(string)
-        # print(splitdata)
-        cal = __RPNchange(splitdata)
-        result , step = __RPNcal(cal)
+        splitdata = _split(string)
+        cal = _RPNchange(splitdata)
+        result , step = _RPNcal(cal)
         if stepreturn:
             return True,result ,step
         else:
             return result
     except UserWarning as err:
         a,b = err.args
-        #print(a,b)
         if stepreturn:
             return False , a, b
         else:
