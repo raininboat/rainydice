@@ -180,4 +180,15 @@ def send_reply(plugin_event,proc,reply,RainyDice,isLogOn=False,isMultiReply=Fals
         group_name = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
         self_id = plugin_event.base_info['self_id']
         self_name = RainyDice.bot.data['name']
-        log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=reply,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)
+        if isMultiReply:
+            for replypack in reply:
+                if replypack[0] == 'reply':
+                    msglst = str.split(replypack[1],'\f')
+                    for msg in msglst:
+                        proc.log(0,'[RainyDice]logging:'+msg)
+                        log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=msg,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)
+        else:
+            msglst = str.split(reply,'\f')
+            for msg in msglst:
+                proc.log(0,'[RainyDice]logging:'+msg)
+                log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=self_id,user_name=self_name,user_text=msg,log_time=time.time().__int__(),group_id=Group_ID,group_name=group_name)

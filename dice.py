@@ -149,7 +149,7 @@ class rolldice(object):
             replace['San_Lose_Expression'] = scExp[0]
             # reply = str.replace(reply,'[San_Lose_Expression]',scExp[0])
         else:
-            status,sanlose,step = calculate(scExp[0])
+            status,sanlose,step = calculate(scExp[1])
             if status ==False:
                 return -1 ,False, step
             replace['San_Lose_Expression'] = scExp[1]

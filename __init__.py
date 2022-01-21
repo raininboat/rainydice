@@ -27,8 +27,8 @@
 
 '''
 
-RainyDice_Version = '0.3.7-alpha.4'
-RainyDice_UpdateExplain = r'完成coc新卡做成, bug fix'
+RainyDice_Version = '0.3.7-alpha.5'
+RainyDice_UpdateExplain = r'sancheck log 等模块 bug fix，适配新版ovo'
 
 RainyDice_Author = 'RainyZhou'
 import rainydice.main

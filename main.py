@@ -170,7 +170,7 @@ def group_reply(plugin_event, Proc):
     Group_Platform = RainyDice.platform_dict[plugin_event.platform['platform']]
     Group_ID = int(plugin_event.data.group_id)
     User_ID = int(plugin_event.data.user_id)
-    message = plugin_event.data.message
+    message = plugin_event.data.message.lstrip()
     # 如果群组位于ignore list中则直接无视，不进行任何操作
     if Group_ID in RainyDice.ignore[plugin_event.platform['platform']]['group'] and RainyDice.ignore['ignore']==True:           # 黑名单模式（仅列表中不回应）
         return None
@@ -204,7 +204,7 @@ def group_reply(plugin_event, Proc):
             user_name = RainyDice.user[Group_Platform][User_ID]['U_Name']
         log_time = plugin_event.base_info['time']
         group_name = RainyDice.group[Group_Platform][Group_ID]['Group_Name']
-        dice_command.chat_log.log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=User_ID,user_name=user_name,user_text=message,log_time=log_time,group_id=Group_ID,group_name=group_name)
+        dice_command.chat_log.log_msg(RainyDice.bot,log_name=log_name,platform=Group_Platform,user_id=User_ID,user_name=user_name,user_text=plugin_event.data.message,log_time=log_time,group_id=Group_ID,group_name=group_name)
     if message == '.bot' or message == '。bot' or message == '/bot':    # 私聊回应 .bot
         plugin_event.send('private',User_ID,RainyDice.GlobalVal.GlobalMsg['BotMsg'].format(version=RainyDice.basic.version.fullversion))
         return None
