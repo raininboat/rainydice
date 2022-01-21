@@ -239,13 +239,13 @@ def log_cmd(msg_obj:Message_Send_All,RainyDice,message:str,user_id:int,platform:
         return None
     elif message.startswith('end'):
         # log end 关闭记录(删除表格)并输出
-        if not RainyDice.group[platform][group_id]['isLogOn']:
-            reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
-            if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
-                RainyDice.group.del_conf('log',0,platform,group_id)
-            msg_obj.attach(Msg_Reply(reply))
-            msg_obj.send()
-            return None
+        # if not RainyDice.group[platform][group_id]['isLogOn']:
+        #     reply = RainyDice.GlobalVal.GlobalMsg['logAlreadyOff']
+        #     if 0 in dict.keys(RainyDice.group[platform][group_id]['log']):
+        #         RainyDice.group.del_conf('log',0,platform,group_id)
+        #     msg_obj.attach(Msg_Reply(reply))
+        #     msg_obj.send()
+        #     return None
         log_name = RainyDice.group[platform][group_id]['log'][0]
         reply = Msg_Reply('跑团记录已结束！正在生成记录文件 {file_name} ...',{'file_name':log_name})
         msg_obj.attach(reply)

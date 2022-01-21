@@ -122,7 +122,7 @@ class LogCsv(object):
         for i in LOG.key:
             # str.replace(log_dict[i],'"','""')
             loglist.append('"{0}"'.format(str.replace(thisline.logline[i].__str__(),'"','""')))
-        self.file.write(','.join(loglist))
+        self.file.write(','.join(loglist)+"\n")
 
     def logsave(self):
         self.file.close()

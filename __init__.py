@@ -27,8 +27,8 @@
 
 '''
 
-RainyDice_Version = '0.3.8-alpha.2'
-RainyDice_UpdateExplain = r"注意！未来存档将发生重大重构，此版本仅为重大bug修复。\nsancheck log 等模块 bug fix，适配新版ovo。"
+RainyDice_Version = '0.3.8-alpha.3'
+RainyDice_UpdateExplain = r"注意！未来存档将发生重大重构，此版本仅为重大bug修复。\nlog 模块 bug fix，适配新版ovo。"
 
 RainyDice_Author = 'RainyZhou'
 import rainydice.main
