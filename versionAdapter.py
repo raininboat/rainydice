@@ -64,6 +64,9 @@ class diceversion(object):
         self.fullversion = version
         versionlist = str.split(version,'-')
         self.shortversion = versionlist[0]
+        self.releaseinfo = None
+        self.releaselevel = None
+        self.releaseversion = None
         if len(versionlist) >=2:
             self.releaseversion = versionlist[1]
             versionlist = str.split(self.releaseversion,'.')
@@ -84,6 +87,9 @@ class diceversion(object):
         elif self.micro >= micro:
             return False
         return True
+    def __str__(self):
+        return self.fullversion
+    
 
 def __sqlversionWrite(sqlpath,version):
     with sqlconn(sqlpath) as conn:

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 '''
-       ___  ___   _____  ____  __
-      / _ \/ _ | /  _/ |/ /\ \/ /
-     / , _/ __ |_/ //    /  \  /
-    /_/|_/_/ |_/___/_/|_/   /_/
+   ___  ___   _____  ____  __
+  / _ \/ _ | /  _/ |/ /\ \/ /
+ / , _/ __ |_/ //    /  \  /
+/_/|_/_/ |_/___/_/|_/   /_/
 
-    RainyDice 跑团投掷机器人服务 by RainyZhou
+    group_command
+    群组控制
 
     Copyright (C) 2021  RainyZhou
                         Email: thunderain_zhou@163.com
@@ -27,13 +28,5 @@
 
 '''
 
-RainyDice_Version = '0.3.8-alpha.2'
-RainyDice_UpdateExplain = r"注意！未来存档将发生重大重构，此版本仅为重大bug修复。\nsancheck log 等模块 bug fix，适配新版ovo。"
-
-RainyDice_Author = 'RainyZhou'
-import rainydice.main
-# import rainydice.dice
-# import rainydice.GlobalVal
-# import rainydice.calculate
-# import rainydice.diceClass
-
+def callDismiss(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID):
+    pass

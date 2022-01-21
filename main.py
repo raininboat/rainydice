@@ -44,7 +44,7 @@ class Event(object):
     # 初始化
     def init(plugin_event, Proc):       # plugin_models_tmp.main.Event.init(plugin_event = None, Proc = self)
         if sys.version_info.major != 3 or sys.version_info.minor != 7:
-            Proc.log(3,'警告：RainyDice在 python 3.7.x 中编写，当前 python 版本：'+sys.version_info.major+'.'+sys.version_info.minor+'.'+sys.version_info.micro+' 不保证功能全部适配')
+            Proc.log(3,'警告：RainyDice在 python 3.7.x 中编写，当前 python 版本：'+sys.version_info.major.__str__()+'.'+sys.version_info.minor.__str__()+'.'+sys.version_info.micro.__str__()+' 不保证功能全部适配')
         bot_init(plugin_event, Proc)
         logtxt = 'RainyDice机器人['+RainyDice.bot.data['name'] + ']已加载完毕，['
         for i,v in RainyDice.platform_dict.items():
@@ -403,6 +403,14 @@ def command_run(message:str,plugin_event,Proc,User_ID:int,Platform:int,Group_ID=
         return 1
     elif message.startswith('draw'):
         if message == 'draw':
+            func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('draw'))
+        else:
+            message = message[4:].strip()
+            status,isMultiReply ,reply = dice_command.draw_command.callDraw(plugin_event,Proc,RainyDice,message,User_ID,Group_Platform,Group_ID)
+            dice_command.chat_log.send_reply(RainyDice=RainyDice,plugin_event=plugin_event,proc=Proc,status=status,isMultiReply=isMultiReply,reply=reply,Group_Platform=Group_Platform,Group_ID=Group_ID,isLogOn=isLogOn)
+        return 1
+    elif message.startswith('dismiss'):
+        if message == 'dismiss':
             func_reply(isLogOn=isLogOn,reply=RainyDice.GlobalVal.getHelpDoc('draw'))
         else:
             message = message[4:].strip()
