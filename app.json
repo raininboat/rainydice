@@ -12,6 +12,11 @@
             "sdk" : "telegram_poll",
             "platform" : "telegram",
             "model" : "all"
+        },
+        {
+            "sdk" : "all",
+            "platform" : "all",
+            "model" : "all"
         }
     ]
 }

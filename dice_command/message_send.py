@@ -158,7 +158,7 @@ class Msg_Data_Basic(object):
         # 根据插件事件类型进行fmt初始化
         self.fmtdata['self_name'] = RainyDice.bot.data['name']
         if self.func_type < 4:
-            self.fmtdata['at'] = OlivOS.OlivOS.messageAPI.PARA.at(plugin_event.data.user_id).CQ()
+            self.fmtdata['at'] = OlivOS.messageAPI.PARA.at(plugin_event.data.user_id).CQ()
         if self.func_type < 2:
             self.fmtdata['nick'] = plugin_event.data.sender['nickname']
         if self.fmtdata['user_id'] in RainyDice.user[self.platform_id]['user_list']:

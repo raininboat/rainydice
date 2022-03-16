@@ -44,9 +44,10 @@ class Dice(object):
     def __init__(self,Data_Path,log,cocRankCheck,ignore={}):
         self.platform_dict = {
             'qq' : 0,
-            'telegram' : 1
+            'telegram' : 1,
+            "dodo" : 2
         }
-        self.platform_list = ['qq','telegram']
+        self.platform_list = ['qq','telegram',"dodo"]
         self.sql_path = Data_Path + '/RainyDice.db'
         self.data_path = Data_Path
         self.log = log
@@ -259,7 +260,7 @@ class Group(dict):
     def __init__(self,sql_path,log):
         self.log = log
         SQL_conn = SQL(sql_path)
-        platform_number = [0,1]         # 所有platform的数字
+        platform_number = [0,1,2]         # 所有platform的数字
         # 所有键名称
         self.key = ('Group_Platform','Group_ID','Group_Setcoc','Group_Name','Group_Owner','Group_Status','Group_Trust')
         #self.jsonconf = ['Group_Setcoc','admin']
@@ -451,7 +452,7 @@ class User(dict):
     def __init__(self,sql_path,log):
         self.log = log
         self.sql_path=sql_path
-        self.platform_number = [0,1]         # 所有platform的数字
+        self.platform_number = [0,1,2]         # 所有platform的数字
         # 所有键名称
         self.keyall = ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust','U_CriticalSuccess','U_ExtremeSuccess','U_HardSuccess','U_RegularSuccess','U_Failure','U_Fumble')
         self.key = ('U_Platform','U_ID','U_Name','U_EnabledCard','U_Trust')

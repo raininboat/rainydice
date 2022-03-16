@@ -131,6 +131,10 @@ def create_ignore_conf(Data_Path= '',Proc=None):
     "telegram":{
         "group":[-1],
         "user":[-1]
+    },
+    "dodo":{
+        "group":[-1],
+        "user":[-1]
     }
 }'''
 
@@ -143,6 +147,10 @@ def create_ignore_conf(Data_Path= '',Proc=None):
             "user":[-1]
         },
         "telegram":{
+            "group":[-1],
+            "user":[-1]
+        },
+        "dodo":{
             "group":[-1],
             "user":[-1]
         }
